@@ -39,8 +39,3 @@ dependencies = [
 
 [project.scripts]
 arrow = "Arrow.cli:main"
-
-[tool.uv]
-include = [
-    { path = "Arrow/Externals/db_manager/db/*.db", format = ["sdist", "wheel"] },
-]
