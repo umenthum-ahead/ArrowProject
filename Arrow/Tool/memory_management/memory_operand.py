@@ -275,7 +275,7 @@ class Memory:
             raise ValueError("Offset and size exceed the bounds of the original memory space.")
 
         # Calculate the new address for the partial memory
-        partial_address = self.address + offset
+        partial_address = self._address + offset
 
         # Create a new Memory instance for the partial memory
         partial_mem = Memory(address=partial_address, byte_size=byte_size, _parent_block=self)
