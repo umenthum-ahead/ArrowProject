@@ -27,6 +27,7 @@ class Memory:
             memory_block_offset: int = None,
             cross_core: bool = False,
             alignment: Optional[int] = None,
+            _use_name_as_unique_label: bool = False, # needed for tohost
     ):
         """
         Initializes a Memory to be used as memory operand.
@@ -50,7 +51,10 @@ class Memory:
 
         Memory._memory_initial_seed_id += 1
         self.name = name if name is not None else f"mem{Memory._memory_initial_seed_id}"
-        self.unique_label = self.name if name is None else name
+        if _use_name_as_unique_label:
+            self.unique_label = self.name
+        else:
+            self.unique_label = self.name if name is None else f"{self.name}_mem{Memory._memory_initial_seed_id}"
         self._address = address
         self.byte_size = byte_size
         self.shared = shared

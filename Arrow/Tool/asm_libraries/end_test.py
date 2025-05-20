@@ -38,7 +38,7 @@ def end_test_asm_convention(test_pass: bool = True, status_code=0) -> None:
         data_value = (status_code << 1) | zero_bit  # Data[31:1] = status_code, Data[0] = 1 or 0
 
         # Generate the assembly code
-        tohost_memory = Memory(name='tohost')
+        tohost_memory = Memory(name='tohost', _use_name_as_unique_label=True)
         end_label = Label(postfix="end_test_label")
         AsmLogger.asm(f"j {end_label}", comment="Jump to end label")
 
