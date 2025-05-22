@@ -22,6 +22,7 @@ def generate(
         src: Any = None,
         dest: Any = None,
         comment: Optional[str] = None,
+        require_random: bool = True,
 ) -> List[GeneratedInstruction]:
     """
     Generates an instruction with the given mnemonic and operands.
@@ -32,6 +33,7 @@ def generate(
     - mnemonic (str): The mnemonic of the instruction.
     - src,dest: optional operands for the instruction.
     - comment (str): postfix comment.
+    - require_random (bool): whether to filter for random_generate instructions.
 
     Returns:
     - Instruction: The generated instruction.
@@ -71,7 +73,8 @@ def generate(
     # exit()
 
     # Filter out all random_generate=False instructions
-    query_filter = query_filter.where(Instruction.random_generate == True)
+    if require_random:
+        query_filter = query_filter.where(Instruction.random_generate == True)
 
     # If query is an existing Expression or dict, add it to the query_filter
     if query:

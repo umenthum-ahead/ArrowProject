@@ -80,8 +80,9 @@ class AR:
             src: Any = None,
             dest: Any = None,
             comment: Optional[str] = None,
+            require_random: bool = True,
     ) -> List[GeneratedInstruction]:
-        return generate_wrapper(instruction_count, query, src, dest, comment)
+        return generate_wrapper(instruction_count, query, src, dest, comment, require_random)
 
 
     @staticmethod
