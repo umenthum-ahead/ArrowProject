@@ -6,8 +6,8 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["Arrow", "Arrow.*"]
+where = [".", "Submodules/arrow_content/content_repo"]
+include = ["Arrow", "Arrow.*", "arrow_content"]
 
 [tool.setuptools.package-data]
 "Arrow.Externals" = ["db_manager/db/*.db"]
