@@ -24,6 +24,15 @@ class RegisterManager_API:
         return current_state.register_manager.get_used_registers(reg_type)
 
     @staticmethod
+    def get_any(reg_name:str=None) -> register_manager.Register:
+        """
+        Selects a random free register, don't mark them as used (reserved = False),
+        and returns the selected register. If no available child is found, raise Error
+        """
+        current_state = _get_current_state()
+        return current_state.register_manager.get_any(reg_name)
+
+    @staticmethod
     def get(reg_name:str=None, reg_type:str=None) -> register_manager.Register:
         """
         Selects a random free register, don't mark them as used (reserved = False),

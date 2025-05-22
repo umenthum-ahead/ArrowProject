@@ -141,6 +141,19 @@ class RegisterManager:
         else:
             return [register for register in self._registers_pool if (register.is_reserve() and register.type==reg_type)]
 
+    def get_any(self, reg_name:str=None, reg_type:str=None) -> Register:
+        """
+        Selects a random register (free or not), don't mark them as used (reserved = False),
+        and returns the selected register. If no available child is found, raise Error
+        """
+        if reg_name:
+            for reg in self._registers_pool:
+                if reg.name == reg_name:
+                    return reg
+            raise ValueError(f'Invalid value, register {reg_name} is not part of registers list ')
+        else:
+            return random.choice(self._registers_pool)
+
     def get(self, reg_name:str=None, reg_type:str=None) -> Register:
         """
         Selects a random free register, don't mark them as used (reserved = False),
