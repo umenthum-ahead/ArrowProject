@@ -185,7 +185,7 @@
                 }
             ],
             "type": "U",
-            "group": "control",
+            "group": "arithmetic",
             "description": "Adds an immediate offset to the current PC and stores the result in the destination register.",
             "syntax": "AUIPC dest_reg, offset",
             "architecture_modes": ["RV32", "RV64"]
@@ -387,7 +387,7 @@
                 }
             ],
             "type": "CSR",
-            "group": "control",
+            "group": "system",
             "description": "Performs a read-modify-write operation on the CSR. Clears bits in the CSR as specified by the source register and writes the previous CSR value to the destination register.",
             "syntax": "CSRRC dest_reg, csr, src_reg",
             "architecture_modes": ["RV32", "RV64"],
@@ -416,7 +416,7 @@
                 }
             ],
             "type": "CSR",
-            "group": "control",
+            "group": "system",
             "description": "Performs a read-modify-write operation on the CSR. Clears bits in the CSR as specified by the immediate value and writes the previous CSR value to the destination register.",
             "syntax": "CSRRCI dest_reg, csr, immediate",
             "architecture_modes": ["RV32", "RV64"],
@@ -445,7 +445,7 @@
                 }
             ],
             "type": "CSR",
-            "group": "control",
+            "group": "system",
             "description": "Performs a read-modify-write operation on the CSR. Sets bits in the CSR as specified by the source register and writes the previous CSR value to the destination register.",
             "syntax": "CSRRS dest_reg, csr, src_reg",
             "architecture_modes": ["RV32", "RV64"],
@@ -474,7 +474,7 @@
                 }
             ],
             "type": "CSR",
-            "group": "control",
+            "group": "system",
             "description": "Performs a read-modify-write operation on the CSR. Sets bits in the CSR as specified by the immediate value and writes the previous CSR value to the destination register.",
             "syntax": "CSRRSI dest_reg, csr, immediate",
             "architecture_modes": ["RV32", "RV64"],
@@ -503,7 +503,7 @@
                 }
             ],
             "type": "CSR",
-            "group": "control",
+            "group": "system",
             "description": "Reads the CSR and writes a new value to it.",
             "syntax": "CSRRW dest_reg, csr, src_reg",
             "architecture_modes": ["RV32", "RV64"],
@@ -532,7 +532,7 @@
                 }
             ],
             "type": "CSR",
-            "group": "control",
+            "group": "system",
             "description": "Writes an immediate value directly to the CSR and writes the previous CSR value to the destination register.",
             "syntax": "CSRRWI dest_reg, csr, immediate",
             "architecture_modes": ["RV32", "RV64"],
@@ -727,7 +727,7 @@
                 }
             ],
             "type": "J",
-            "group": "branch",
+            "group": "control_flow",
             "description": "Jumps to the address specified by the offset and stores the address of the next instruction (PC + 4) in the destination register.",
             "syntax": "JAL dest_reg, offset",
             "architecture_modes": ["RV32", "RV64"],
@@ -756,7 +756,7 @@
                 }
             ],
             "type": "I",
-            "group": "branch",
+            "group": "control_flow",
             "description": "Jumps to the address computed by adding the offset to the value in the base register, and stores the address of the next instruction (PC + 4) in the destination register. The least significant bit of the computed address is cleared.",
             "syntax": "JALR dest_reg, src_reg, offset",
             "architecture_modes": ["RV32", "RV64"],
@@ -1842,7 +1842,7 @@
             "mnemonic": "uret",
             "operands": [],
             "type": "J",
-            "group": "control",
+            "group": "system",
             "description": "Returns from user-level interrupt handler and restores the user-level program counter and status.",
             "syntax": "URET",
             "architecture_modes": ["RV32", "RV64"],
@@ -1852,7 +1852,7 @@
             "mnemonic": "wfi",
             "operands": [],
             "type": "I",
-            "group": "control",
+            "group": "system",
             "description": "Waits for an interrupt to occur. It puts the CPU in a low-power state until an interrupt is received.",
             "syntax": "WFI",
             "architecture_modes": ["RV32", "RV64"],
@@ -1927,7 +1927,7 @@
                 }
             ],
             "type": "B",
-            "group": "branch",
+            "group": "control_flow",
             "description": "Unconditional branch to the target offset.",
             "syntax": "B offset",
             "architecture_modes": ["RV32", "RV64"],
@@ -2264,7 +2264,7 @@
                 }
             ],
             "type": "J",
-            "group": "control_flow",
+            "group": "system",
             "description": "Performs an unconditional jump to the target address and stores the return address in register x1 (ra).",
             "syntax": "CALL offset",
             "architecture_modes": ["RV32", "RV64"],
