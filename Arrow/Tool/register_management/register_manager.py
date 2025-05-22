@@ -55,6 +55,9 @@ class RegisterManager:
             for i in range(0,8):
                 reg = Register(name_mapping={64:f"a{i}"}, type="gpr", default_size=64, is_random=True)
                 self._registers_pool.append(reg)
+            for i in range(0,8):
+                reg = Register(name=f"a{i}", type="gpr", is_random=True)
+                self._registers_pool.append(reg)
 
             for name in (["x0","ra","sp","gp","tp"]):
                 reg = Register(name_mapping={64:name}, type="gpr", default_size=64, is_random=False)
