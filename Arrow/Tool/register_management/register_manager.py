@@ -41,19 +41,22 @@ class RegisterManager:
             '''
             Summary of RISC-V Registers:
                 General Purpose: x0 (zero), x1 (ra - return address), x2 (sp - stack pointer), x3 (gp - global pointer), x4 (tp - thread pointer), 
-                    x5-x7 (t0-t2 - temporaries), x8-x15 (s0-s7 - saved), x16-x31 (t3-t7, s8-s15 - temporaries and saved).
+                    x5-x7 (t0-t2 - temporaries), x8-x9 (s0-s1 - saved), x10-x17 (a0-a7 - func args), x18-x27 (s2-s11 - more saved), x28-x31 (t3-t6 - more temporaries).
                 Special Purpose: pc (program counter), csr (control and status registers).
                 Floating-Point/SIMD: f0-f31 (floating-point), v0-v31 (vector registers).
             '''
-            # TODO:: in some setting, there are 16 s-registers and 8 t-registers, need to check when, for now I reduced it to 12s and 6t
-            for i in range(0,6):
+            # TODO:: not supporting E extension for now, not very common
+            for i in range(0,7):
                 reg = Register(name_mapping={64:f"t{i}"}, type="gpr", default_size=64, is_random=True)
                 self._registers_pool.append(reg)
             for i in range(0,12):
                 reg = Register(name_mapping={64:f"s{i}"}, type="gpr", default_size=64, is_random=True)
                 self._registers_pool.append(reg)
+            for i in range(0,8):
+                reg = Register(name_mapping={64:f"a{i}"}, type="gpr", default_size=64, is_random=True)
+                self._registers_pool.append(reg)
 
-            for name in (["pc","x0","ra","sp"]):
+            for name in (["x0","ra","sp","gp","tp"]):
                 reg = Register(name_mapping={64:name}, type="gpr", default_size=64, is_random=False)
                 self._registers_pool.append(reg)
 
