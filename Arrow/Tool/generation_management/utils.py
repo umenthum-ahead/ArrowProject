@@ -4,6 +4,7 @@ from Arrow.Utils.configuration_management import Configuration, get_config_manag
 from Arrow.Tool.memory_management.memory_operand import Memory
 from Arrow.Tool.register_management.register import Register
 
+from Arrow.Tool.asm_libraries.label import LabelImm
 
 def print_instruction(selected_instruction):
     print(f"Mnemonic: {selected_instruction.mnemonic}, Operands: {selected_instruction.operands}, "
@@ -24,6 +25,8 @@ def get_operand_type(operand):
         return "reg"
     elif isinstance(operand, int):
         return "imm"
+    elif isinstance(operand, LabelImm):
+        return "offset_imm"
     else:
         raise ValueError(f"Invalid operand type {type(operand)}")
 
