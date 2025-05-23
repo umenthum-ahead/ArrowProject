@@ -60,7 +60,7 @@ def setup_template_and_content(template_file_path, input_content_path=None):
             raise FileNotFoundError(f"Content provided path '{external_content_base_path}' does not exist or is not a directory.")
     else:
         # Fallback to base_dir/submodules/content
-        external_content_base_path = Path(base_dir).resolve() / ".." / 'Submodules' / 'arrow_content'/ 'content_repo' / 'content'
+        external_content_base_path = Path(base_dir).resolve() / ".." / 'Submodules' / 'arrow_content'/ 'content_repo' / 'arrow_content'
         external_content_base_path = Path(external_content_base_path).resolve()
         logger.debug(f"Derived submodule content path from base_dir: {external_content_base_path}")
         # Ensure the content directory exists
