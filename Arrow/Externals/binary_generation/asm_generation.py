@@ -302,7 +302,6 @@ def generate_data_from_DataUnits(data_segments):
 
 def generate_assembly():
     logger = get_logger()
-    state_manager = get_state_manager()
 
     # need to fix this behavior, make sure there is only one boot, only one _start label.
     # make sure the segments are in order and not just core0 and then core1 ,...

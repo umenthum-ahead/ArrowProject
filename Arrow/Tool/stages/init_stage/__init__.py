@@ -134,6 +134,13 @@ def init_page_tables():
 
         curr_state = state_manager.set_active_state(state_name)
         curr_state.current_el_page_table = el3r
+        stack_block = curr_state.memory_manager.allocate_memory_segment(name=f"stack_segment", byte_size=0x1000, memory_type=Configuration.Memory_types.STACK)
+        logger.debug(f"init_memory: allocating stack_block {stack_block}")
+
+        code_block_count = Configuration.Knobs.Memory.code_block_count.get_value()
+        for i in range(code_block_count):
+            code_block = curr_state.memory_manager.allocate_memory_segment(name=f"code_segment_{i}", byte_size=0x1000, memory_type=Configuration.Memory_types.CODE)
+            logger.debug(f"init_memory: allocating code_block {code_block}")
 
     state_manager.set_active_state("core0_thread0")
     

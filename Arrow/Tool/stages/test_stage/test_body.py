@@ -59,6 +59,9 @@ def do_scenario(current_scenario: Optional[int], max_scenario:Optional[int]):
     logger.info(info_str)
     AsmLogger.comment(info_str)
 
+    # Is this a pseudo RNG to either do a one-way or two-way branch?
+    # If so... why? If ythere is no memory requirement that forces us to do this
+    # I don't see the point of this. We are not having memory consistency between scenarios
     two_way_branch = choice.choice(values=[True, False])
     if two_way_branch:
         with branch_to_segment.BranchToSegment(selected_block):

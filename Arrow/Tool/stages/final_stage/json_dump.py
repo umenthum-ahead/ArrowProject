@@ -45,10 +45,12 @@ def memory_usage_json_dump():
 
     all_segments = current_page_table.segment_manager.get_segments(pool_type=[Configuration.Memory_types.BOOT_CODE,
                                                                       Configuration.Memory_types.CODE,
+                                                                      Configuration.Memory_types.STACK,
                                                                       Configuration.Memory_types.DATA_SHARED,
                                                                       Configuration.Memory_types.DATA_PRESERVE])
     all_data_segments = current_page_table.segment_manager.get_segments(pool_type=[Configuration.Memory_types.DATA_SHARED,
-                                                                           Configuration.Memory_types.DATA_PRESERVE])
+                                                                                   Configuration.Memory_types.STACK,
+                                                                                   Configuration.Memory_types.DATA_PRESERVE])
 
     # Prepare JSON structure with two sections: summary and detailed data
     output_data = {

@@ -10,6 +10,7 @@ class Architecture:
 class Memory_types(Enum):
     BSP_BOOT_CODE = "bsp_boot_code"
     BOOT_CODE = "boot_code"
+    STACK = "stack"
     CODE = "code"
     DATA_SHARED = "data_shared"
     DATA_PRESERVE = "data_reserved"

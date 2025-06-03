@@ -30,6 +30,7 @@ def do_boot():
         curr_state = state_manager.set_active_state(state)
         curr_page_table = curr_state.current_el_page_table
 
+        stack_block = MemoryManager.MemoryBlock(name="stack_block", byte_size=1*1024, _is_stack=True)
         boot_blocks = curr_page_table.segment_manager.get_segments(pool_type=Configuration.Memory_types.BOOT_CODE)
         if len(boot_blocks) != 1:
             raise ValueError(
@@ -63,6 +64,21 @@ def do_boot():
         # requesting current_page again, as the set_privilege_level might have changed it
         curr_state = state_manager.get_active_state()
         curr_page_table = curr_state.current_el_page_table
+
+        AsmLogger.comment(f"Stack segment generated at {stack_block.address} with size {stack_block.byte_size}")
+
+        if Configuration.Architecture.x86:
+            AsmLogger.comment(f"TODO: stack initialization for x86")
+        elif Configuration.Architecture.riscv:
+            sp = RegisterManager.get(reg_name='sp')
+            sp.set_reserve()
+            stack_mem = MemoryManager.Memory(name='stack_memory', memory_block=stack_block, memory_block_offset=0)
+            AsmLogger.asm(f"la sp, {stack_mem.unique_label}", comment="Load the value of the stack")
+        elif Configuration.Architecture.arm:
+            AsmLogger.comment(f"TODO: stack initialization for ARM")
+        else:
+            raise ValueError(f"Unsupported architecture")
+
         # selecting random block to jump to for test body
         available_blocks = curr_page_table.segment_manager.get_segments(pool_type=Configuration.Memory_types.CODE, non_exclusive_only=True)
         selected_block = choice.choice(values=available_blocks)
