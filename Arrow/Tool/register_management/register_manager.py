@@ -59,6 +59,8 @@ class RegisterManager:
                 reg = Register(name=f"a{i}", type="gpr", is_random=True)
                 self._registers_pool.append(reg)
 
+            # TODO FIXME scenarios assuming ra can be used functionally, so avoid using it randomly,
+            # should remove that assumption later and allow ra to be used randomly
             for name in (["x0","ra","sp","gp","tp"]):
                 reg = Register(name_mapping={64:name}, type="gpr", default_size=64, is_random=False)
                 self._registers_pool.append(reg)
@@ -192,7 +194,8 @@ class RegisterManager:
     def get_and_reserve(self, reg_type:str="gpr") -> Register:
         """
         Selects a random free register, marks them as used (reserved = True),
-        and returns the selected register. If no available child is found, raise Error
+        and returns the selected register. If no available register is found, raise Error
+        For RISC-V, it will not select x0 (zero register) as it is not writable.
         """
         if not self.is_valid_register(reg_type=reg_type):
             reg_types = [reg.type for reg in self._registers_pool]
@@ -202,12 +205,9 @@ class RegisterManager:
         free_regs = self.get_free_registers(reg_type=reg_type)
         if free_regs:
             if Configuration.Architecture.riscv:
-                # in riscv, try preferring temp_registers when ask for get, and saved-registers when asked for get_and_reserve
-                saved_registers = [reg for reg in free_regs if str(reg).startswith('s')]
-                selected_reg = random.choice(saved_registers) if saved_registers else random.choice(free_regs)
-            else:
-                # Default selection for non-RISC-V architectures
-                selected_reg = random.choice(free_regs)
+                free_regs = [reg for reg in free_regs if str(reg) != "x0"]
+
+            selected_reg = random.choice(free_regs)
 
             selected_reg.set_reserve()
             return selected_reg
