@@ -13,11 +13,11 @@ def get_last_user_context():
     # Get config values and normalize paths
     config_manager = get_config_manager()
 
-    internal_content_dir_path = config_manager.get_value('internal_content_dir_path')
-    external_content_dir_path = config_manager.get_value('external_content_dir_path')
+    internal_content_dir_path = normalize_path(config_manager.get_value('internal_content_dir_path'))
+    external_content_dir_path = normalize_path(config_manager.get_value('external_content_dir_path'))
     template_file = normalize_path(config_manager.get_value('template_path'))
 
-    arrow_root = config_manager.get_value('base_dir_path')
+    arrow_root = normalize_path(config_manager.get_value('base_dir_path'))
     test_stage_path = normalize_path(arrow_root + '/Tool/stages/test_stage')
     memory_segments_path = normalize_path(arrow_root + '/Tool/memory_management/memory_segments.py') # initial code label is create there
     exception_tables_path = normalize_path(arrow_root + '/Tool/exception_management/__init__.py')
