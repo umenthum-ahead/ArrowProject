@@ -14,6 +14,9 @@ def setup_chosen_architecture():
     elif architecture == "riscv":
         Architecture.riscv = True
         Architecture.arch_str = "riscv"
+        from Arrow.Utils.configuration_management import Configuration
+        from Arrow.Utils.configuration_management.riscv_config import RiscvConfig
+        Configuration.RiscvConfig = RiscvConfig()
     elif architecture == "arm":
         Architecture.arm = True
         Architecture.arch_str = "arm"

@@ -2,9 +2,42 @@ import random
 from Arrow.Tool.register_management.register import Register
 from Arrow.Utils.logger_management import get_logger
 from Arrow.Utils.configuration_management import Configuration
+from typing import List
 
 
 class RegisterManager:
+    @staticmethod
+    def get_riscv_registers() -> list[Register]:
+        '''
+        Summary of RISC-V Registers:
+            General Purpose: x0 (zero), x1 (ra - return address), x2 (sp - stack pointer), x3 (gp - global pointer), x4 (tp - thread pointer), 
+                x5-x7 (t0-t2 - temporaries), x8-x9 (s0-s1 - saved), x10-x17 (a0-a7 - func args), x18-x27 (s2-s11 - more saved), x28-x31 (t3-t6 - more temporaries).
+            Special Purpose: pc (program counter), csr (control and status registers).
+            Floating-Point/SIMD: f0-f31 (floating-point), v0-v31 (vector registers).
+        '''
+        ret = []
+        # TODO:: not supporting E extension for now, not very common
+        for i in range(0,7):
+            reg = Register(name_mapping={64:f"t{i}"}, type="gpr", default_size=64, is_random=True)
+            ret.append(reg)
+        for i in range(0,12):
+            reg = Register(name_mapping={64:f"s{i}"}, type="gpr", default_size=64, is_random=True)
+            ret.append(reg)
+        for i in range(0,8):
+            reg = Register(name_mapping={64:f"a{i}"}, type="gpr", default_size=64, is_random=True)
+            ret.append(reg)
+        for i in range(0,8):
+            reg = Register(name=f"a{i}", type="gpr", is_random=True)
+            ret.append(reg)
+
+        # TODO FIXME scenarios assuming ra can be used functionally, so avoid using it randomly,
+        # should remove that assumption later and allow ra to be used randomly
+        for name in (["x0","ra","sp","gp","tp"]):
+            reg = Register(name_mapping={64:name}, type="gpr", default_size=64, is_random=False)
+            ret.append(reg)
+
+        return ret
+
     def __init__(self,) -> None:
         """
             Initializes the RegisterManager with an internal pool of Registers.
@@ -38,33 +71,7 @@ class RegisterManager:
                 self._registers_pool.append(reg)
 
         elif Configuration.Architecture.riscv:
-            '''
-            Summary of RISC-V Registers:
-                General Purpose: x0 (zero), x1 (ra - return address), x2 (sp - stack pointer), x3 (gp - global pointer), x4 (tp - thread pointer), 
-                    x5-x7 (t0-t2 - temporaries), x8-x9 (s0-s1 - saved), x10-x17 (a0-a7 - func args), x18-x27 (s2-s11 - more saved), x28-x31 (t3-t6 - more temporaries).
-                Special Purpose: pc (program counter), csr (control and status registers).
-                Floating-Point/SIMD: f0-f31 (floating-point), v0-v31 (vector registers).
-            '''
-            # TODO:: not supporting E extension for now, not very common
-            for i in range(0,7):
-                reg = Register(name_mapping={64:f"t{i}"}, type="gpr", default_size=64, is_random=True)
-                self._registers_pool.append(reg)
-            for i in range(0,12):
-                reg = Register(name_mapping={64:f"s{i}"}, type="gpr", default_size=64, is_random=True)
-                self._registers_pool.append(reg)
-            for i in range(0,8):
-                reg = Register(name_mapping={64:f"a{i}"}, type="gpr", default_size=64, is_random=True)
-                self._registers_pool.append(reg)
-            for i in range(0,8):
-                reg = Register(name=f"a{i}", type="gpr", is_random=True)
-                self._registers_pool.append(reg)
-
-            # TODO FIXME scenarios assuming ra can be used functionally, so avoid using it randomly,
-            # should remove that assumption later and allow ra to be used randomly
-            for name in (["x0","ra","sp","gp","tp"]):
-                reg = Register(name_mapping={64:name}, type="gpr", default_size=64, is_random=False)
-                self._registers_pool.append(reg)
-
+            self._registers_pool.extend(RegisterManager.get_riscv_registers())
         elif Configuration.Architecture.arm:
             '''
             Summary of Common Registers in ARM64:
@@ -146,18 +153,21 @@ class RegisterManager:
         else:
             return [register for register in self._registers_pool if (register.is_reserve() and register.type==reg_type)]
 
-    def get_any(self, reg_name:str=None, reg_type:str=None) -> Register:
+    def get_all_registers(self, reg_type:str=None) -> list[Register]:
+        """
+        Returns a list of all registers, free or reserved.
+        """
+        if reg_type is None:
+            return [register for register in self._registers_pool]
+        else:
+            return [register for register in self._registers_pool if register.type == reg_type]
+
+    def get_any(self, reg_type:str=None, exclude:List=[]) -> Register:
         """
         Selects a random register (free or not), don't mark them as used (reserved = False),
         and returns the selected register. If no available child is found, raise Error
         """
-        if reg_name:
-            for reg in self._registers_pool:
-                if reg.name == reg_name:
-                    return reg
-            raise ValueError(f'Invalid value, register {reg_name} is not part of registers list ')
-        else:
-            return random.choice(self._registers_pool)
+        return random.choice([reg for reg in self._registers_pool if (reg_type is None or reg.type == reg_type) and reg not in exclude and reg.name not in exclude])
 
     def get(self, reg_name:str=None, reg_type:str=None) -> Register:
         """
@@ -180,9 +190,8 @@ class RegisterManager:
 
             if free_regs:
                 if Configuration.Architecture.riscv:
-                    # in riscv, try preferring temp registers when ask for get, and saved registers when asked for get_and_reserve
-                    temp_registers = [reg for reg in free_regs if str(reg).startswith('t')]
-                    selected_reg = random.choice(temp_registers) if temp_registers else random.choice(free_regs)
+                    free_regs = [reg for reg in free_regs if str(reg) != "x0"]
+                    selected_reg = random.choice(free_regs)
                 else:
                     # Default selection for non-RISC-V architectures
                     selected_reg = random.choice(free_regs)

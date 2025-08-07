@@ -10,6 +10,10 @@ from Arrow.Tool.asm_libraries.barrier.barrier import Barrier
 from Arrow.Tool.exception_management import get_exception_manager
 #from Arrow.Tool.generation_management.generate import generate
 
+from Arrow.Arrow_API.resources.memory_manager import MemoryManager_API as MemoryManager
+from Arrow.Arrow_API.resources.register_manager import RegisterManager_API as RegisterManager
+from Arrow.Arrow_API import AR
+from Arrow.Utils.configuration_management.enums import PrivilegeLevel
 from Arrow.Utils.APIs import choice
 
 
@@ -30,7 +34,7 @@ def do_boot():
         curr_state = state_manager.set_active_state(state)
         curr_page_table = curr_state.current_el_page_table
 
-        stack_block = MemoryManager.MemoryBlock(name="stack_block", byte_size=1*1024, _is_stack=True)
+        stack_block = MemoryManager.MemoryBlock(name="stack_block", byte_size=4*1024, _is_stack=True)
         boot_blocks = curr_page_table.segment_manager.get_segments(pool_type=Configuration.Memory_types.BOOT_CODE)
         if len(boot_blocks) != 1:
             raise ValueError(
@@ -70,10 +74,13 @@ def do_boot():
         if Configuration.Architecture.x86:
             AsmLogger.comment(f"TODO: stack initialization for x86")
         elif Configuration.Architecture.riscv:
+            # TODO pick random stack pointer register instead of ABI sp
             sp = RegisterManager.get(reg_name='sp')
             sp.set_reserve()
-            stack_mem = MemoryManager.Memory(name='stack_memory', memory_block=stack_block, memory_block_offset=0)
-            AsmLogger.asm(f"la sp, {stack_mem.unique_label}", comment="Load the value of the stack")
+            #stack_mem = MemoryManager.Memory(name='stack_memory', memory_block=stack_block, byte_size=stack_block.byte_size, memory_block_offset=0)
+            Configuration.RiscvConfig.register_stack_memory(current_state.privilege_level, stack_block)
+            if current_state.privilege_level == PrivilegeLevel.RISCV.MACHINE:
+                AsmLogger.asm(f"la sp, {stack_block.unique_label} + {stack_block.byte_size - 8}", comment="Load the value of the stack")
         elif Configuration.Architecture.arm:
             AsmLogger.comment(f"TODO: stack initialization for ARM")
         else:

@@ -354,7 +354,12 @@ def generate_assembly():
 
     # Output the result to a .s file
     with open(asm_file, "w") as f:
-        f.write(full_asm_code)
+        for asm in asm_code:
+            f.write(asm)
+            f.write("\n")
+        for data in data_code:
+            f.write(data)
+            f.write("\n")
 
     logger.info(f"---- Assembly code generated successfully. Check {asm_file}")
 

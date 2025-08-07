@@ -5,6 +5,20 @@ from Arrow.Tool.asm_libraries.asm_logger import AsmLogger
 from Arrow.Tool.asm_libraries.label import Label
 from Arrow.Tool.asm_libraries.barrier.barrier import Barrier
 
+# Singleton/static variable for tohost memory
+_tohost_memory_instance = None
+
+def get_tohost_memory():
+    """
+    Get the singleton tohost memory instance.
+    Creates it only once and returns the same instance on subsequent calls.
+    """
+    global _tohost_memory_instance
+    if _tohost_memory_instance is None:
+        # TODO control which state this gets associated with, doesn't matter for now
+        _tohost_memory_instance = Memory(name='tohost', _use_name_as_unique_label=True)
+    return _tohost_memory_instance
+
 def end_test_asm_convention(test_pass: bool = True, status_code=0) -> None:
     """
     Generate assembly code to end a test with agreed status.
@@ -38,7 +52,7 @@ def end_test_asm_convention(test_pass: bool = True, status_code=0) -> None:
         data_value = (status_code << 1) | zero_bit  # Data[31:1] = status_code, Data[0] = 1 or 0
 
         # Generate the assembly code
-        tohost_memory = Memory(name='tohost', _use_name_as_unique_label=True)
+        tohost_memory = get_tohost_memory()
         end_label = Label(postfix="end_test_label")
         AsmLogger.asm(f"j {end_label}", comment="Jump to end label")
 

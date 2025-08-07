@@ -77,12 +77,14 @@ class RISCVState(State):
 
     def __init__(self, state_name: str, state_id: int, register_manager: RegisterManager,
                  privilege_level: int, processor_mode: str, enabled_page_tables: list[PageTable],
-                 current_code_block: MemorySegment, base_register: Register, base_register_value: int):
+                 current_code_block: MemorySegment, base_register: Register, base_register_value: int,
+                 stack_pointer: Optional[Register] = None):
         super().__init__(state_name, state_id, register_manager, enabled_page_tables, current_code_block)
         self.privilege_level: int = privilege_level
         self.processor_mode: str = processor_mode
         self.base_register: Register = base_register
         self.base_register_value: int = base_register_value
+        self.stack_pointer: Optional[Register] = stack_pointer
 
     def __repr__(self):
         return (f"RISCV State(name={self.state_name}, "

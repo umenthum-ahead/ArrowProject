@@ -15,11 +15,21 @@ from Arrow.Tool.memory_management.memlayout.page_table_manager import get_page_t
 from Arrow.Tool.memory_management.memory_logger import get_memory_logger, print_memory_state
 from Arrow.Tool.exception_management import get_exception_manager
 
+from Arrow.Tool.memory_management import memory_manager, MemoryRange
+from Arrow.Utils.configuration_management.enums import PrivilegeLevel
 
 def init_state():
     logger = get_logger()
     logger.info("============ init_state")
     state_manager = get_state_manager()
+
+    # Check if managed mode is enabled for multi-privilege state creation
+    privilege_mode_managed = Configuration.Knobs.Config.privilege_mode_managed.get_value()
+    logger.info(f'Managed privilege mode: {privilege_mode_managed}')
+
+    # Validate that managed mode is only used with RISC-V
+    if privilege_mode_managed and not Configuration.Architecture.riscv:
+        raise ValueError("Managed privilege mode is only supported on RISC-V architecture. Use bare mode for other architectures.")
 
     core_count = Configuration.Knobs.Config.core_count.get_value()
     thread_count = Configuration.Knobs.Config.thread_count.get_value()
@@ -31,13 +41,13 @@ def init_state():
 
     for i, state_id in enumerate(states):
         # create a state singleton for thread i, and set its values
-        logger.info(f'--------------- Creating state for {state_id}')
+        logger.info(f'--------------- Creating state(s) for {state_id}')
 
+        # allocating 2M MemoryRange per core, and set memory_manager withing this range
+        core_memory_region_start, core_memory_region_size = region_intervals.allocate(Configuration.ByteSize.SIZE_2M.in_bytes())
+        core_memory_range = MemoryRange(core=core_id, address=core_memory_region_start, byte_size= core_memory_region_size)
 
         if Configuration.Architecture.x86:
-            # Initialize the memory library with a 4GB space # TODO:: remove this hard-coded limitation
-            region_intervals = IntervalLib(start_address=0, total_size=Configuration.ByteSize.SIZE_4G.in_bytes())
-
             # allocating 2M MemoryRange per core, and set segment_manager withing this range
             core_memory_region_start, core_memory_region_size = region_intervals.find_and_remove(Configuration.ByteSize.SIZE_2M.in_bytes())
             
@@ -57,21 +67,49 @@ def init_state():
                 base_register_value=base_register_value,
             )
 
+            stack_pointer = None
         elif Configuration.Architecture.riscv:
             base_register_value = core_memory_range.address + (core_memory_range.byte_size // 2)
             base_register_value = base_register_value & ~0b11  # Round Down (to the nearest multiple of 4) to make it 4-byte aligned
+            stack_pointer = register_manager.RegisterManager().get(reg_name="sp", reg_type="gpr")
+            register_manager.RegisterManager().reserve(stack_pointer)
 
-            curr_state = State.create_state(
-                state_name=state_id,
-                state_id=i,
-                processor_mode=Configuration.Knobs.Config.processor_mode,
-                privilege_level=0,
-                register_manager=register_manager.RegisterManager(),
-                enabled_page_tables = [],
-                current_code_block=None,
-                base_register=None,
-                base_register_value=base_register_value,
-            )
+            if privilege_mode_managed:
+                # Managed mode: Create separate states for each privilege level on RISC-V
+                privilege_levels = [PrivilegeLevel.RISCV.MACHINE, PrivilegeLevel.RISCV.SUPERVISOR, PrivilegeLevel.RISCV.USER]
+                for priv_level in privilege_levels:
+                    state_id = f'{core_id}_priv_{priv_level.name.lower()}'
+                    logger.info(f'    Creating managed privilege state {state_id} (privilege level {priv_level})')
+
+                    new_register_manager = register_manager.RegisterManager()
+                    curr_state = State(
+                        state_name=state_id,
+                        processor_mode=Configuration.Knobs.Config.processor_mode,
+                        privilege_level=priv_level,
+                        register_manager=new_register_manager,
+                        memory_range=core_memory_range,
+                        memory_manager=memory_manager.MemoryManager(memory_range=core_memory_range),
+                        current_code=None,
+                        base_register=None,
+                        base_register_value=base_register_value,
+                        stack_pointer=stack_pointer,
+                    )
+                    state_manager.add_state(state_id, curr_state)
+                    sp_reg = Configuration.RiscvConfig.get_privileged_stack_pointer(priv_level)
+                    sp_reg = new_register_manager.get(reg_name=sp_reg.name)
+                    new_register_manager.reserve(sp_reg)
+            else:
+                curr_state = State.create_state(
+                    state_name=state_id,
+                    state_id=i,
+                    processor_mode=Configuration.Knobs.Config.processor_mode,
+                    privilege_level=0,
+                    register_manager=register_manager.RegisterManager(),
+                    enabled_page_tables = [],
+                    current_code_block=None,
+                    base_register=None,
+                    base_register_value=base_register_value,
+                )
         elif Configuration.Architecture.arm:
             curr_state = State.create_state(
                 state_name=state_id,
@@ -100,6 +138,16 @@ def init_state():
 
     state_manager.set_active_state('core0_thread0')
 
+    # Set the default active state
+    # In managed mode, prefer machine privilege level, otherwise use core_0
+    if privilege_mode_managed and Configuration.Architecture.riscv:
+        default_state = 'core_0_priv_machine'  # Machine privilege level
+        logger.info(f"Setting default active state to {default_state} (machine privilege level)")
+    else:
+        default_state = 'core_0'
+        logger.info(f"Setting default active state to {default_state}")
+    
+    state_manager.set_active_state(default_state)
 
 def init_registers():
     logger = get_logger()

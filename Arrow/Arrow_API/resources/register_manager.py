@@ -1,4 +1,5 @@
 from Arrow.Tool.state_management import get_current_state as _get_current_state
+from typing import List
 
 # Expose the classes under the resources package
 __all__ = ["RegisterManager_API"]  # Only export RegisterManager_API
@@ -13,7 +14,7 @@ class RegisterManager_API:
         Returns a list of all free registers.
         """
         current_state = _get_current_state()
-        return current_state.register_manager.get_free_registers(reg_type)
+        return current_state.register_manager.get_free_registers(reg_type=reg_type)
 
     @staticmethod
     def get_used_registers(reg_type:str=None) -> list[register_manager.Register]:
@@ -24,13 +25,13 @@ class RegisterManager_API:
         return current_state.register_manager.get_used_registers(reg_type)
 
     @staticmethod
-    def get_any(reg_name:str=None) -> register_manager.Register:
+    def get_any(reg_type:str=None, exclude:List=[]) -> register_manager.Register:
         """
         Selects a random free register, don't mark them as used (reserved = False),
         and returns the selected register. If no available child is found, raise Error
         """
         current_state = _get_current_state()
-        return current_state.register_manager.get_any(reg_name)
+        return current_state.register_manager.get_any(reg_type, exclude=exclude)
 
     @staticmethod
     def get(reg_name:str=None, reg_type:str=None) -> register_manager.Register:
@@ -39,7 +40,7 @@ class RegisterManager_API:
         and returns the selected register. If no available child is found, raise Error
         """
         current_state = _get_current_state()
-        return current_state.register_manager.get(reg_name, reg_type)
+        return current_state.register_manager.get(reg_name=reg_name, reg_type=reg_type)
 
     @staticmethod
     def get_and_reserve(reg_type:str="gpr") -> register_manager.Register:
