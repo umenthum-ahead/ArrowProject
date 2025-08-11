@@ -62,6 +62,7 @@ class Tag(Enum):
     FEATURE_A = "feature_a"
     FEATURE_B = "feature_b"
     FEATURE_C = "feature_c"
+    FEATURE_TWO_TKN = "feat_two_tkn"
     MEMORY = "memory"
     STACK = "stack"
     REST = "rest"  # Special tag representing all available tags
