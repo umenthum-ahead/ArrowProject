@@ -1980,8 +1980,6 @@
             "syntax": "C.LDSP dest_reg, offset",
             "architecture_modes": ["RV64"]
         },
-        // What to do here - dest is also a source
-        // What to do here for implicit operand (x2/sp)?
         {
             "mnemonic": "c.addi",
             "operands": [
