@@ -3,7 +3,7 @@ from pathlib import Path
 import shutil
 from Arrow.Utils.logger_management import get_logger
 from Arrow.Utils.configuration_management import get_config_manager
-from Arrow.Utils.configuration_management.enums import Architecture
+from Arrow.Utils.configuration_management.enums import Architecture, PrivilegeLevel
 
 def setup_chosen_architecture():
     config_manager = get_config_manager()
@@ -17,6 +17,9 @@ def setup_chosen_architecture():
         from Arrow.Utils.configuration_management import Configuration
         from Arrow.Utils.configuration_management.riscv_config import RiscvConfig
         Configuration.RiscvConfig = RiscvConfig()
+        priv_level_int = Configuration.Knobs.Config.privilege_level.get_value()
+        Configuration.Knobs.Config.privilege_level.set_value(PrivilegeLevel.RISCV.from_int(priv_level_int))
+
     elif architecture == "arm":
         Architecture.arm = True
         Architecture.arch_str = "arm"

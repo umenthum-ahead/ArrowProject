@@ -101,7 +101,20 @@ class PrivilegeLevel:
         SUPERVISOR = 1    # Supervisor mode (S-mode) - privilege level 1  
         HYPERVISOR = 2    # Hypervisor mode (H-mode) - privilege level 2 (reserved)
         MACHINE = 3       # Machine mode (M-mode) - privilege level 3
-    
+
+        @classmethod
+        def from_int(cls, value: int) -> "PrivilegeLevel.RISCV":
+            if value == cls.USER:
+                return cls.USER
+            elif value == cls.SUPERVISOR:
+                return cls.SUPERVISOR
+            elif value == cls.HYPERVISOR:
+                return cls.HYPERVISOR
+            elif value == cls.MACHINE:
+                return cls.MACHINE
+            else:
+                raise ValueError(f"Invalid RISC-V privilege level: {value}")
+
     class ARM(Enum):
         """
         ARM privilege levels (for future implementation).
