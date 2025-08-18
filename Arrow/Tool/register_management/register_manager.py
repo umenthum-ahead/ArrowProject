@@ -36,6 +36,10 @@ class RegisterManager:
             reg = Register(name_mapping={64:name}, type="gpr", default_size=64, is_random=False)
             ret.append(reg)
 
+        for i in range(0,32):
+            reg = Register(name=f"f{i}", type="fp", is_random=True)
+            ret.append(reg)
+
         return ret
 
     def __init__(self,) -> None:
@@ -132,6 +136,15 @@ class RegisterManager:
         else:
             return reg_name in [reg.name for reg in self._registers_pool]
 
+    def get_all_registers(self, reg_type:str=None) -> list[Register]:
+        """
+        Returns a list of all free registers.
+        """
+        if reg_type is None:
+            return [register for register in self._registers_pool]
+        else:
+            return [register for register in self._registers_pool if (register.type==reg_type)]
+
     def get_free_registers(self, reg_type:str=None) -> list[Register]:
         """
         Returns a list of all free registers.
@@ -167,7 +180,7 @@ class RegisterManager:
         Selects a random register (free or not), don't mark them as used (reserved = False),
         and returns the selected register. If no available child is found, raise Error
         """
-        return random.choice([reg for reg in self._registers_pool if (reg_type is None or reg.type == reg_type) and reg not in exclude and reg.name not in exclude])
+        return random.choice([reg for reg in self.get_all_registers(reg_type) if reg not in exclude and reg.name not in exclude])
 
     def get(self, reg_name:str=None, reg_type:str=None) -> Register:
         """

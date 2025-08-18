@@ -50,7 +50,7 @@ def generate_riscv(
             memory_operand = Memory(shared=True)
 
         # setting an address register to be used as part of the dynamic_init if a memory operand is used
-        dynamic_init_memory_address_reg = current_state.register_manager.get_and_reserve()
+        dynamic_init_memory_address_reg = current_state.register_manager.get_and_reserve(reg_type="gpr")
 
         comment = f"dynamic init: loading {dynamic_init_memory_address_reg} for next instruction"
         if memory_operand.reused_memory:
@@ -76,7 +76,7 @@ def generate_riscv(
             else:
                 eval_operand = dest
         elif operand['type'] == "reg":
-            eval_operand = current_state.register_manager.get()
+            eval_operand = current_state.register_manager.get(reg_type="gpr")
         elif operand['type'] == "imm":
             random_imm = generate_random_imm_with_size(operand['size'])
             eval_operand = random_imm
