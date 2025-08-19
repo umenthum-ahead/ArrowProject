@@ -1,7 +1,7 @@
 
 from Arrow.Utils.configuration_management import Configuration
 from Arrow.Tool.state_management import get_current_state
-from Arrow.Tool.memory_management.memory import Memory
+from Arrow.Tool.memory_management.memory_operand import Memory
 from Arrow.Tool.asm_libraries.asm_logger import AsmLogger
 
 

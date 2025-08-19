@@ -1,7 +1,7 @@
 import random
 
-from Arrow.Utils.configuration_management import Configuration
-from Arrow.Tool.memory_management.memory import Memory
+from Arrow.Utils.configuration_management import Configuration, get_config_manager
+from Arrow.Tool.memory_management.memory_operand import Memory
 from Arrow.Tool.register_management.register import Register
 
 
@@ -25,7 +25,7 @@ def get_operand_type(operand):
     elif isinstance(operand, int):
         return "imm"
     else:
-        raise ValueError("Invalid operand type")
+        raise ValueError(f"Invalid operand type {type(operand)}")
 
 
 def find_possible_locations(operands, role, type):
@@ -35,12 +35,48 @@ def find_possible_locations(operands, role, type):
         list of int: List of valid indices where the operand can be placed.
     """
     possible_locations = []
-    for i, op in enumerate(operands):
-        if (op['type'] == type) and (op['role'] == role):
-            possible_locations.append(i)
+    index = 1   # index start from 1 not 0
+    for op in operands:
+        #print(f'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz op_type {op.type}, op_role {op.role}, op_memory_role {op.memory_role}, wanted_type {type}, wanted_role {role}')
+        if not op.is_operand:
+            continue
+
+        # Skip invalid matching combinations upfront
+        if type == "mem" and not op.is_memory:
+            # Skip non-memory operands when looking for memory
+            pass
+        elif type != "mem" and op.is_memory:
+            # Skip memory operands when looking for non-memory types
+            pass
+        elif type == "mem" and op.is_memory:
+            if (op.memory_role == "base"):
+                # this initial code will only handle the base, and will try to set offset to zero!
+                possible_locations.append(index)
+        else:
+            # Check for register type matches including prefixes
+            type_match = (op.type == type) or \
+                        (type == "gpr" and op.type.startswith("gpr")) or \
+                        (type == "simdfp" and op.type.startswith("simdfp")) or \
+                        (type == "pred" and op.type.startswith("pred"))
+                        
+            # Check for role matches including src_dest cases
+            role_match = (op.role == role) or \
+                        (op.role == "src_dest" and (role == "src" or role == "dest"))
+                        
+            if type_match and role_match:
+                possible_locations.append(index)
+
+            # if (op.type == type) or (type == "gpr" and op.type.startswith("gpr")) or (type == "simdfp" and op.type.startswith("simdfp")):
+            #     if (op.role == role) or (op.role == "src_dest" and (role == "src" or role == "dest")):
+            #         possible_locations.append(index)
+        index += 1
     if not possible_locations:
         raise ValueError(f"Couldn't find possible location that match {role} {type} operand")
     else:
+        config_manager = get_config_manager()
+        instruction_debug_prints = config_manager.get_value('Instruction_debug_prints')
+        if instruction_debug_prints:
+            print(f"   find_possible_locations for {role} {type} operand: {possible_locations}")
         return possible_locations
 
 
@@ -53,11 +89,12 @@ def map_inputs_to_operands(selected_instruction, src, dest):
     src_location = None
     dest_location = None
     if src is not None:
-        src_locations = find_possible_locations(selected_instruction.operands, role="src", type=get_operand_type(src))
+        if isinstance(src, Memory): src.type = "mem"
+        src_locations = find_possible_locations(selected_instruction.operands, role="src", type=src.type)
         src_location = random.choice(src_locations)
     if dest is not None:
-        dest_locations = find_possible_locations(selected_instruction.operands, role="dest",
-                                                 type=get_operand_type(dest))
+        if isinstance(dest, Memory): dest.type = "mem"
+        dest_locations = find_possible_locations(selected_instruction.operands, role="dest", type=dest.type)
         dest_location = random.choice(dest_locations)
     if dest is not None and src is not None:
         # if both src/dest input was provided, need to make sure they dont targeting the same operand

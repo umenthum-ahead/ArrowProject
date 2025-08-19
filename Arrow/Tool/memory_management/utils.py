@@ -49,3 +49,4 @@ def convert_bytes_to_words(byte_representation):
             idx += remaining_bytes
 
     return words
+

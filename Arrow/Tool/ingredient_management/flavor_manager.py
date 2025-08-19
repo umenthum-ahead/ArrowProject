@@ -1,6 +1,6 @@
 import random
 from typing import List, Optional, Union
-from Arrow.Tool.ingredient_management.ingredient_manager import get_random_ingredients
+import Arrow.Tool
 """
 
 Flavor Management System Overview:
@@ -110,7 +110,7 @@ class FlavorManager:
 
         # If it's a Flavor, resolve ingredients dynamically based on its tags
         if isinstance(selected, Flavor):
-            selected_ingredients = get_random_ingredients(count=selected.count, tags=selected.tags)
+            selected_ingredients = Arrow.Tool.ingredient_manager.get_random_ingredients(count=selected.count, tags=selected.tags)
             return Flavor(name=selected.name, description=selected.description,
                           weight=selected.weight, ingredients=selected_ingredients)
 

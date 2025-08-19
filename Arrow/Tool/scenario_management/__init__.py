@@ -73,6 +73,7 @@ class ScenarioManager:
         Raises:
             ValueError: If a scenario with the same name already exists in the pool.
         """
+        #print(f"Adding scenario {scenario.name()}")
         # Check if a scenario with the same name already exists
         if any(existing_scenario.name() == scenario.name() for existing_scenario in self._scenarios_pool):
             raise ValueError(f"A scenario with the name '{scenario.name()}' already exists in the pool.")
@@ -169,8 +170,14 @@ class ScenarioManager:
                 # calculate relative weight
                 direct_scenario_portion = tags[str(scenario)] / sum(tags.values())
                 all_other_portion = 1 - direct_scenario_portion
-                overall_weight = total_weight / all_other_portion
-                weighted_objects_dict[scenario] = overall_weight * direct_scenario_portion
+                
+                # Handle case where all_other_portion is 0 (100% direct scenarios)
+                if all_other_portion == 0:
+                    # When there are only direct scenarios, assign weight based on priority and direct portion
+                    weighted_objects_dict[scenario] = Configuration.PRIORITY_WEIGHTS[scenario.priority] * direct_scenario_portion
+                else:
+                    overall_weight = total_weight / all_other_portion
+                    weighted_objects_dict[scenario] = overall_weight * direct_scenario_portion
 
         # Step 3: use `Tool.choices` to randomize from weighted_objects_dict
 

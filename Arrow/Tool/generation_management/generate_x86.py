@@ -4,7 +4,7 @@ from Arrow.Externals.db_manager.models import Instruction
 from Arrow.Tool.generation_management.generate import GeneratedInstruction
 from Arrow.Tool.generation_management.utils import map_inputs_to_operands
 from Arrow.Tool.state_management import get_state_manager
-from Arrow.Tool.memory_management.memory import Memory
+from Arrow.Tool.memory_management.memory_operand import Memory
 
 import ast
 

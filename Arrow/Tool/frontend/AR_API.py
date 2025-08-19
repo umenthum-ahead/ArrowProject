@@ -21,12 +21,12 @@
 #     logger.info("======================== AR_API")
 #     config_manager = get_config_manager()
 #
-#     from Tool.decorators.scenario_decorator import scenario_decorator
-#     from Tool.ingredient_management.ingredient import Ingredient
-#     from Tool.decorators.ingredient_decorator import ingredient_decorator
+#     from Arrow.Tool.decorators.scenario_decorator import scenario_decorator
+#     from Arrow.Tool.ingredient_management.ingredient import Ingredient
+#     from Arrow.Tool.decorators.ingredient_decorator import ingredient_decorator
 #
 #     # Instruction query
-#     from Tool.db_manager.models import Instruction
+#     from Arrow.Tool.db_manager.models import Instruction
 #
 #     @staticmethod
 #     def asm(asm_code:str, comment:str=None):

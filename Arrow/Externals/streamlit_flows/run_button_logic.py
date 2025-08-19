@@ -54,34 +54,34 @@ def handle_run_button(code_input):
                 from importlib import reload
                 reload(main)
                 #
-                # from Utils.singleton_management import SingletonManager
+                # from Arrow.Utils.singleton_management import SingletonManager
                 # SingletonManager.reset()  # Reset all singletons
                 #
                 # import Utils
                 # import Tool
-                # from Utils.logger_management import Logger
-                # from Utils.arg_parser import arg_parser
-                # from Utils.configuration_management import configuration_management
-                # from Tool.generation_management import generate
-                # from Tool.memory_management import memory_manager
+                # from Arrow.Utils.logger_management import Logger
+                # from Arrow.Utils.arg_parser import arg_parser
+                # from Arrow.Utils.configuration_management import configuration_management
+                # from Arrow.Tool.generation_management import generate
+                # from Arrow.Tool.memory_management import segment_manager
                 # Logger.clean_logger()
                 # reload(Utils.arg_parser.arg_parser)
                 # reload(Utils.logger_management)
                 # reload(Utils.configuration_management.configuration_management)
                 # reload(Utils.configuration_management.knob_manager)
                 # reload(Utils.configuration_management.knobs)
-                # reload(Tool.memory_management.memory_manager)
+                # reload(Tool.memory_management.memory_segment)
                 #
                 #
                 # # reload(Tool.ingredient_management)
-                # # from Utils.configuration_management import tags_and_enums
+                # # from Arrow.Utils.configuration_management import tags_and_enums
                 # # reload(tags_and_enums)
-                # # from Tool.db_manager import models
+                # # from Arrow.Tool.db_manager import models
                 # # reload(models)
-                # # from Tool.generation import generate
+                # # from Arrow.Tool.generation import generate
                 # # reload(generate)
 
-                from Tool.stages import final_stage
+                from Arrow.Tool.stages import final_stage
                 final_stage.reset_tool()
 
                 success = main.main(command_args)

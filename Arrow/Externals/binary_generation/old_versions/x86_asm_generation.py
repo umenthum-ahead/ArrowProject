@@ -1,6 +1,6 @@
 import os
-import Tool
-from Utils.configuration_management import get_config_manager, Configuration
+import Arrow.Tool
+from Arrow.Utils.configuration_management import get_config_manager, Configuration
 
 #Assembler_syntax = "GAS" # (GNU Assembler) syntax but not for NASM
 Assembler_syntax = "NASM"
@@ -104,9 +104,9 @@ def generate_data_from_DataUnits(data_blocks):
 
 def generate_x86_assembly():
 
-    current_state = Tool.state_manager.get_active_state()
-    all_code_blocks = current_state.memory_manager.get_segments(pool_type=[Configuration.Memory_types.BOOT_CODE, Configuration.Memory_types.CODE])
-    all_data_blocks = current_state.memory_manager.get_segments(pool_type=[Configuration.Memory_types.DATA_SHARED, Configuration.Memory_types.DATA_PRESERVE])
+    current_state = Arrow.Tool.state_manager.get_active_state()
+    all_code_blocks = current_state.segment_manager.get_segments(pool_type=[Configuration.Memory_types.BOOT_CODE, Configuration.Memory_types.CODE])
+    all_data_blocks = current_state.segment_manager.get_segments(pool_type=[Configuration.Memory_types.DATA_SHARED, Configuration.Memory_types.DATA_PRESERVE])
 
     # Generate assembly code for instructions and data blocks
     asm_code = generate_asm_from_AsmUnits(all_code_blocks)
@@ -124,4 +124,4 @@ def generate_x86_assembly():
     with open(asm_file, "w") as f:
         f.write(full_asm_code)
 
-    Tool.logger.info(f"---- Assembly code generated successfully. Check {asm_file}")
+    Arrow.Tool.logger.info(f"---- Assembly code generated successfully. Check {asm_file}")

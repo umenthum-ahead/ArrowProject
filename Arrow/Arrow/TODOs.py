@@ -320,11 +320,11 @@ RISCV learning
     # Done:: implement rangeWithPeak
     # TODO:: add more APIs, like event_trigger, Branch, function, safe_regs,...
     # Done:: add comment into AR.asm("nop",comment="nop instruction")
-    # Done:: move choices, rangeWithPeak from Tool to Utils
+    # Done:: move choices, rangeWithPeak from Arrow.Tool to Utils
     # Done:: add Adaptive_choice in addition to Choice to support less uniform behavior and extend random variations.
 
 # TODO:: AR API
-    # DONE:: decouple FE from Tool, create additional TG class from the Tool class, and all init will be there
+    # DONE:: decouple FE from Arrow.Tool, create additional TG class from the Tool class, and all init will be there
     # TODO:: migrate more APIs to be under AR. migrate content toward it
     # TODO:: need to think what to do with decorators and such?
 

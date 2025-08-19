@@ -1,4 +1,3 @@
-
 from Arrow.Utils.logger_management import get_logger
 from Arrow.Utils.configuration_management import get_config_manager
 from Arrow.Tool.stages.final_stage.json_dump import generation_json_dump, memory_usage_json_dump
@@ -7,6 +6,7 @@ from Arrow.Utils.singleton_management import SingletonManager
 
 from Arrow.Externals.binary_generation.asm_generation import generate_assembly
 from Arrow.Externals.binary_generation.binary_generation import generate_binary
+from Arrow.Externals.binary_generation.pgt_page_table_generation import run_PGT_prototype
 
 def final_section():
     logger = get_logger()
@@ -16,9 +16,14 @@ def final_section():
     generation_json_dump()
     memory_usage_json_dump()
 
+    create_binary = config_manager.get_value('Create_binary')
+
+    enable_mmu = False # config_manager.get_value('Enable_MMU')
+    if enable_mmu and create_binary:
+        run_PGT_prototype()
+
     generate_assembly()
 
-    create_binary = config_manager.get_value('Create_binary')
     if create_binary:
         try:
             generate_binary()
@@ -35,8 +40,15 @@ def final_section():
 def close_instruction_db():
     logger = get_logger()
     # Close the database connection
-    Instruction = get_instruction_db()
-    Instruction._meta.database.close()
+    db_models = get_instruction_db()
+    
+    if isinstance(db_models, dict):
+        # ARM case - returns dict with Instruction and Operand models
+        Instruction = db_models['Instruction']
+        Instruction._meta.database.close()
+    else:
+        # Standard case - returns Instruction model directly
+        db_models._meta.database.close()
 
     logger.debug(f"------ close DB connection")
 

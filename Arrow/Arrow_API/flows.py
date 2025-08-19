@@ -1,11 +1,11 @@
 from peewee import Expression
 from typing import Union, List, Dict, Any, Optional, Tuple
 from Arrow.Utils.logger_management import get_logger
-from Arrow.Utils.configuration_management import get_config_manager, Configuration
+from Arrow.Utils.configuration_management import Configuration
+from Arrow.Utils.APIs import choice, range_with_peak, adaptive_choice
 from Arrow.Tool.generation_management.generate import GeneratedInstruction, generate as generate_wrapper
 from Arrow.Tool.register_management.register import Register
-from Arrow.Tool.memory_management.memory_segments import CodeSegment
-from Arrow.Utils.APIs import choice, range_with_peak, adaptive_choice
+from Arrow.Tool.memory_management.memlayout.segment import CodeSegment
 from Arrow.Tool.asm_libraries import label, asm_logger, stack, store_value
 from Arrow.Tool.asm_libraries.memory_array.memory_array import MemoryArray as MemoryArray_wrapper
 from Arrow.Tool.asm_libraries.loop.loop_base import LoopBase
@@ -14,18 +14,27 @@ from Arrow.Tool.asm_libraries.branch_to_segment.branch_to_segment_base import Br
 from Arrow.Tool.asm_libraries.branch_to_segment.branch_to_segment import BranchToSegment as BranchToSegment_wrapper
 from Arrow.Tool.asm_libraries.event_trigger.event_trigger_base import EventTriggerBase
 from Arrow.Tool.asm_libraries.event_trigger.event_trigger import EventTrigger as EventTrigger_wrapper
+from Arrow.Tool.asm_libraries.barrier.barrier import Barrier as Barrier_wrapper
+from Arrow.Tool.state_management import get_state_manager, get_current_state
+from Arrow.Tool.state_management.switch_state import SwitchState as SwitchState_wrapper
+from Arrow.Tool.asm_libraries.switch_el import switch_EL as switch_EL_wrapper
+from Arrow.Tool.asm_libraries.sysreg import SysReg as SysReg_wrapper
+from Arrow.Tool.asm_libraries.trickbox.trickbox import Trickbox as Trickbox_wrapper
 
 class AR:
     logger = get_logger()
     logger.info("======================== AR_API")
-    config_manager = get_config_manager()
 
     from Arrow.Tool.decorators.scenario_decorator import scenario_decorator
     from Arrow.Tool.ingredient_management.ingredient import Ingredient
     from Arrow.Tool.decorators.ingredient_decorator import ingredient_decorator
 
     # Instruction query
-    from Arrow.Externals.db_manager.models import Instruction
+    asl_extract = True # TODO:: remove this after testing!!!!
+    if Configuration.Architecture.arm and asl_extract:
+        from Arrow.Externals.db_manager.asl_testing.asl_models import Instruction
+    else:
+        from Arrow.Externals.db_manager.models import Instruction
 
     @staticmethod
     def asm(asm_code:str, comment:str=None):
@@ -74,6 +83,11 @@ class AR:
     ) -> List[GeneratedInstruction]:
         return generate_wrapper(instruction_count, query, src, dest, comment)
 
+
+    @staticmethod
+    def switch_EL(target_el_level: int):
+        return switch_EL_wrapper(target_el_level)
+
     @staticmethod
     def Loop(
             counter: int,
@@ -101,11 +115,65 @@ class AR:
     def BranchToSegment(code_block: CodeSegment) -> BranchToSegmentBase:
         return BranchToSegment_wrapper(code_block)  # Return an instance of the branch_to_segment class
 
+    @staticmethod
+    def Barrier(barrier_name: str):
+        return Barrier_wrapper(barrier_name)  # Return an instance of the barrier class
 
     @staticmethod
     def store_value_into_register(register: Register, value: int) -> None:
         # Calls the internal store_value yet expose to users as TG.store_value API
         return store_value.store_value_into_register(register, value)
+
+    @staticmethod
+    class Trickbox:
+        @staticmethod
+        def write(register: Configuration.TrickboxRegister, value: Optional[int] = None, source_register: Optional[Register] = None):
+            trickbox = Trickbox_wrapper()
+            return trickbox.write(register, value, source_register)
+
+        @staticmethod
+        def read(register: Configuration.TrickboxRegister, target_register: Register):
+            trickbox = Trickbox_wrapper()
+            return trickbox.read(register, target_register)
+
+    @staticmethod
+    class Sysreg:
+        @staticmethod
+        def write(register: Configuration.SystemRegister, value: Optional[int] = None, source_register: Optional[Register] = None):
+            return SysReg_wrapper.write(register, value, source_register)
+
+        @staticmethod
+        def read(register: Configuration.SystemRegister, target_register: Register):
+            return SysReg_wrapper.read(register, target_register)
+
+
+    @staticmethod
+    class State:
+        # @staticmethod
+        # def get_current_state() -> None:
+        #     state_manager = get_state_manager()
+        #     return state_manager.get_active_state()
+        
+        @staticmethod
+        def get_current_state_name() -> str:
+            state_manager = get_state_manager()
+            return state_manager.get_active_state().state_name
+
+        @staticmethod
+        def get_current_state_id() -> int:
+            state_manager = get_state_manager()
+            return state_manager.get_active_state().state_id
+
+        @staticmethod
+        def get_all_states_names() -> List[str]:
+            state_manager = get_state_manager()
+            return [state.state_name for state in state_manager.get_all_states()]
+
+        @staticmethod
+        def switch_state(state_name: str):
+            return SwitchState_wrapper(state_name)
+
+
 
     @staticmethod
     class Stack:

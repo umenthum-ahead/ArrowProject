@@ -59,6 +59,16 @@ def parse_arguments(input_args=None):
 
     parser.add_argument('--identifier', type=str, help='Identifier to use during statistics upload.')
 
+    parser.add_argument('--debug_mode', choices=['True', 'False'],
+                        help="Run Arrow with additional debug prints checking logic, ('True', 'False').")
+
+    parser.add_argument('--instruction_debug_prints', choices=['True', 'False'],
+                        help="Run Arrow with additional debug prints checking logic, ('True', 'False').")
+
+    parser.add_argument('--memory_debug_prints', choices=['None', 'memory_log', 'info_log'],
+                        help="Run Arrow with additional debug prints checking logic, ('None', 'memory_log', 'info_log').")
+
+
     # Optional argument: --define or -D (multiple key-value pairs)
     parser.add_argument('-D', '--define', action='append',
                         help="Define knobs in the format key=value. Can be used multiple times.")
@@ -89,8 +99,8 @@ def parse_arguments(input_args=None):
         logger.info(f"--------------- Output directory: {args.output}")
         config_manager.set_value('output_dir_path', args.output)
     else:
-        logger.info(f"--------------- Output directory: Output (default)")
-        config_manager.set_value('output_dir_path', 'Output')
+        logger.info(f"--------------- Output directory: Arrow_output (default)")
+        config_manager.set_value('output_dir_path', 'Arrow_output')
     setup_output_directory()
 
     if args.seed:
@@ -106,7 +116,7 @@ def parse_arguments(input_args=None):
         logger.info(f"--------------- architecture: {args.arch}")
         config_manager.set_value('Architecture', args.arch)
     else:
-        arch = 'riscv'
+        arch = 'arm'
         logger.info(f"--------------- architecture: {arch} (default)")
         config_manager.set_value('Architecture', arch)
     setup_chosen_architecture()
@@ -123,7 +133,7 @@ def parse_arguments(input_args=None):
         logger.info(f"--------------- execution_platform: {args.execution_platform}")
         config_manager.set_value('Execution_platform', args.execution_platform)
     else:
-        execution_platform = 'linked_elf'
+        execution_platform = 'baremetal'
         logger.info(f"--------------- execution_platform: {execution_platform} (default)")
         config_manager.set_value('Execution_platform', execution_platform)
 
@@ -138,6 +148,30 @@ def parse_arguments(input_args=None):
     if args.identifier:
         logger.info(f"--------------- identifier: {args.identifier}")
         config_manager.set_value('Identifier', args.identifier)
+
+    if args.debug_mode:
+        debug_mode = True if (args.debug_mode == "True") else False
+        logger.info(f"--------------- debug_mode: {debug_mode}")
+    else:
+        debug_mode = True
+        logger.info(f"--------------- debug_mode: {debug_mode} (defaults)")
+    config_manager.set_value('Debug_mode', debug_mode)
+
+    if args.instruction_debug_prints:
+        instruction_debug_prints = True if (args.instruction_debug_prints == "True") else False
+        logger.info(f"--------------- instruction_debug_prints: {instruction_debug_prints}")
+    else:
+        instruction_debug_prints = False
+        logger.info(f"--------------- instruction_debug_prints: {instruction_debug_prints} (defaults)")
+    config_manager.set_value('Instruction_debug_prints', instruction_debug_prints)
+
+    if args.memory_debug_prints:
+        memory_debug_prints = None if (args.memory_debug_prints == "None") else args.memory_debug_prints
+        logger.info(f"--------------- memory_debug_prints: {args.memory_debug_prints}")
+    else:
+        memory_debug_prints = 'memory_log'
+        logger.info(f"--------------- memory_debug_prints: {memory_debug_prints} (defaults)")
+    config_manager.set_value('Memory_debug_prints', memory_debug_prints)
 
     if args.create_binary:
         create_binary = True if (args.create_binary == "True") else False
