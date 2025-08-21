@@ -2160,8 +2160,8 @@
                     "size": "full_register_width"
                 },
                 {
-                    "name": "offset_plus_basereg",
-                    "type": "offset_plus_basereg",
+                    "name": "offset_plus_basecreg",
+                    "type": "offset_plus_basecreg",
                     "role": "src",
                     "size": "5_bits_unsigned"
                 }
@@ -2169,7 +2169,7 @@
             "type": "CL",
             "group": "load",
             "description": "Loads a double-precision floating-point value from memory into an FP register.",
-            "syntax": "C.FLD dest_reg, offset(basereg)",
+            "syntax": "C.FLD dest_reg, offset(basecreg)",
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -2182,16 +2182,16 @@
                     "size": "32_bits"
                 },
                 {
-                    "name": "offset_plus_basereg",
-                    "type": "offset_plus_basereg",
+                    "name": "offset_plus_basecreg",
+                    "type": "offset_plus_basecreg",
                     "role": "src",
                     "size": "5_bits_unsigned"
                 }
             ],
             "type": "CL",
             "group": "load",
-            "description": "Loads a 32-bit word from memory. Offset is scaled by 4 before adding to basereg.",
-            "syntax": "C.LW dest_reg, offset(basereg)",
+            "description": "Loads a 32-bit word from memory. Offset is scaled by 4 before adding to basecreg.",
+            "syntax": "C.LW dest_reg, offset(basecreg)",
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -2204,8 +2204,8 @@
                     "size": "full_register_width"
                 },
                 {
-                    "name": "offset_plus_basereg",
-                    "type": "offset_plus_basereg",
+                    "name": "offset_plus_basecreg",
+                    "type": "offset_plus_basecreg",
                     "role": "src",
                     "size": "5_bits_unsigned"
                 }
@@ -2213,7 +2213,7 @@
             "type": "CL",
             "group": "load",
             "description": "Loads a 64-bit doubleword from memory into a register.",
-            "syntax": "C.LD dest_reg, offset(basereg)",
+            "syntax": "C.LD dest_reg, offset(basecreg)",
             "architecture_modes": ["RV64"]
         },
         {
@@ -2226,8 +2226,8 @@
                     "size": "full_register_width"
                 },
                 {
-                    "name": "offset_plus_basereg",
-                    "type": "offset_plus_basereg",
+                    "name": "offset_plus_basecreg",
+                    "type": "offset_plus_basecreg",
                     "role": "dest",
                     "size": "5_bits_unsigned"
                 }
@@ -2235,7 +2235,7 @@
             "type": "CS",
             "group": "store",
             "description": "Stores a double-precision floating-point value from an FP register to memory.",
-            "syntax": "C.FSD src_reg, offset(basereg)",
+            "syntax": "C.FSD src_reg, offset(basecreg)",
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -2248,8 +2248,8 @@
                     "size": "32_bits"
                 },
                 {
-                    "name": "offset_plus_basereg",
-                    "type": "offset_plus_basereg",
+                    "name": "offset_plus_basecreg",
+                    "type": "offset_plus_basecreg",
                     "role": "dest",
                     "size": "5_bits_unsigned"
                 }
@@ -2257,7 +2257,7 @@
             "type": "CS",
             "group": "store",
             "description": "Stores a 32-bit word from a register to memory.",
-            "syntax": "C.SW src_reg, offset(basereg)",
+            "syntax": "C.SW src_reg, offset(basecreg)",
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -2270,8 +2270,8 @@
                     "size": "full_register_width"
                 },
                 {
-                    "name": "offset_plus_basereg",
-                    "type": "offset_plus_basereg",
+                    "name": "offset_plus_basecreg",
+                    "type": "offset_plus_basecreg",
                     "role": "dest",
                     "size": "5_bits_unsigned"
                 }
@@ -2279,7 +2279,7 @@
             "type": "CS",
             "group": "store",
             "description": "Stores a 64-bit doubleword from a register to memory.",
-            "syntax": "C.SD src_reg, offset(basereg)",
+            "syntax": "C.SD src_reg, offset(basecreg)",
             "architecture_modes": ["RV64"]
         },
         {
