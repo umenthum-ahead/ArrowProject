@@ -1521,12 +1521,12 @@
                     "name": "immediate",
                     "type": "imm",
                     "role": "src",
-                    "size": "12_bits_unsigned"
+                    "size": "12_bits_signed"
                 }
             ],
             "type": "I",
             "group": "comparison",
-            "description": "Sets the destination register to 1 if the value in the source register is less than the immediate value (unsigned). Otherwise, sets it to 0.",
+            "description": "Sets the destination register to 1 if the value in the source register is less than the immediate value (signed). Otherwise, sets it to 0.",
             "syntax": "SLTIU dest_reg, src_reg, immediate",
             "architecture_modes": ["RV32", "RV64"]
         },
@@ -1905,35 +1905,13 @@
                     "name": "immediate",
                     "type": "imm",
                     "role": "src",
-                    "size": "12_bits_unsigned"
+                    "size": "12_bits_signed"
                 }
             ],
             "type": "I",
             "group": "logical",
             "description": "Performs a bitwise XOR operation between the value in the source register and the immediate value, and stores the result in the destination register.",
             "syntax": "XORI dest_reg, src_reg, immediate",
-            "architecture_modes": ["RV32", "RV64"]
-        },
-        {
-            "mnemonic": "c.fldsp",
-            "operands": [
-                {
-                    "name": "dest_reg",
-                    "type": "gpr",
-                    "role": "dest",
-                    "size": "full_register_width"
-                },
-                {
-                    "name": "offset",
-                    "type": "offset_imm",
-                    "role": "src",
-                    "size": "6_bits_unsigned"
-                }
-            ],
-            "type": "CI",
-            "group": "load",
-            "description": "Load doubleword into floating-point register from stack.",
-            "syntax": "C.FLDSP rd, offset",
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1946,16 +1924,16 @@
                     "size": "32_bits"
                 },
                 {
-                    "name": "offset",
-                    "type": "offset_imm",
+                    "name": "sp",
+                    "type": "offset_plus_fixedbasereg",
                     "role": "src",
-                    "size": "6_bits_unsigned"
+                    "size": "6_bits_shift_2_unsigned"
                 }
             ],
             "type": "CI",
             "group": "load",
             "description": "Loads a 32-bit word from the stack, sign-extends it to the register width, and writes it to a register.",
-            "syntax": "C.LWSP dest_reg, offset",
+            "syntax": "C.LWSP dest_reg, offset(sp)",
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1968,16 +1946,16 @@
                     "size": "full_register_width"
                 },
                 {
-                    "name": "offset",
-                    "type": "offset_imm",
+                    "name": "sp",
+                    "type": "offset_plus_fixedbasereg",
                     "role": "src",
-                    "size": "6_bits_unsigned"
+                    "size": "6_bits_shift_3_unsigned"
                 }
             ],
             "type": "CI",
             "group": "load",
             "description": "Loads a 64-bit doubleword from the stack into a register.",
-            "syntax": "C.LDSP dest_reg, offset",
+            "syntax": "C.LDSP dest_reg, offset(sp)",
             "architecture_modes": ["RV64"]
         },
         {
@@ -1991,7 +1969,7 @@
                 },
                 {
                     "name": "immediate",
-                    "type": "imm",
+                    "type": "nzimm",
                     "role": "src",
                     "size": "6_bits_signed"
                 }
@@ -2050,16 +2028,22 @@
             "mnemonic": "c.addi16sp",
             "operands": [
                 {
+                    "name": "sp",
+                    "type": "implicit_operand",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
                     "name": "immediate",
-                    "type": "imm",
+                    "type": "nzimm",
                     "role": "src",
-                    "size": "10_bits_signed"
+                    "size": "6_bits_shift_4_signed"
                 }
             ],
             "type": "CI",
             "group": "arithmetic",
             "description": "Adds a non-zero multiple of 16 to the stack pointer.",
-            "syntax": "C.ADDI16SP immediate",
+            "syntax": "C.ADDI16SP sp, immediate",
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -2073,14 +2057,14 @@
                 },
                 {
                     "name": "immediate",
-                    "type": "imm",
+                    "type": "nzimm",
                     "role": "src",
-                    "size": "6_bits_signed"
+                    "size": "5_bits_unsigned"
                 }
             ],
             "type": "CI",
             "group": "arithmetic",
-            "description": "Loads a 6-bit sign-extended immediate into the bits [XLEN:12] of a register. Clears the lower 12 bits.",
+            "description": "Loads a 6-bit sign-extended immediate into the bits [XLEN:12] of a register. Clears the lower 12 bits. We however specify the immediate without the shift for this. Our compiler also doesn't like anything beyond [0x1, 0x1f] although the actual range should be [-0x20, 0x1f].",
             "syntax": "C.LUI dest_reg, immediate",
             "architecture_modes": ["RV32", "RV64"]
         },
@@ -2091,19 +2075,19 @@
                     "name": "src_reg",
                     "type": "gpr",
                     "role": "src",
-                    "size": "32_bits"
+                    "size": "full_register_width"
                 },
                 {
-                    "name": "offset",
-                    "type": "offset_imm",
+                    "name": "sp",
+                    "type": "offset_plus_fixedbasereg",
                     "role": "src",
-                    "size": "8_bits_unsigned"
+                    "size": "6_bits_shift_2_unsigned"
                 }
             ],
             "type": "CSS",
             "group": "store",
             "description": "Stores a 32-bit word from a register to the stack.",
-            "syntax": "C.SWSP src_reg, offset",
+            "syntax": "C.SWSP src_reg, offset(sp)",
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -2116,61 +2100,17 @@
                     "size": "full_register_width"
                 },
                 {
-                    "name": "offset",
-                    "type": "offset_imm",
-                    "role": "src",
-                    "size": "9_bits_unsigned"
+                    "name": "sp",
+                    "type": "offset_plus_fixedbasereg",
+                    "role": "dest",
+                    "size": "6_bits_shift_3_unsigned"
                 }
             ],
             "type": "CSS",
             "group": "store",
             "description": "Stores a 64-bit doubleword from a register to the stack.",
-            "syntax": "C.SDSP src_reg, offset",
+            "syntax": "C.SDSP src_reg, offset(sp)",
             "architecture_modes": ["RV64"]
-        },
-        {
-            "mnemonic": "c.fsdsp",
-            "operands": [
-                {
-                    "name": "src_reg",
-                    "type": "gpr",
-                    "role": "src",
-                    "size": "full_register_width"
-                },
-                {
-                    "name": "offset",
-                    "type": "offset_imm",
-                    "role": "src",
-                    "size": "9_bits_unsigned"
-                }
-            ],
-            "type": "CSS",
-            "group": "store",
-            "description": "Stores a double-precision floating-point value from an FP register to the stack.",
-            "syntax": "C.FSDSP src_reg, offset",
-            "architecture_modes": ["RV32", "RV64"]
-        },
-        {
-            "mnemonic": "c.fld",
-            "operands": [
-                {
-                    "name": "dest_reg",
-                    "type": "creg",
-                    "role": "dest",
-                    "size": "full_register_width"
-                },
-                {
-                    "name": "offset_plus_basecreg",
-                    "type": "offset_plus_basecreg",
-                    "role": "src",
-                    "size": "5_bits_unsigned"
-                }
-            ],
-            "type": "CL",
-            "group": "load",
-            "description": "Loads a double-precision floating-point value from memory into an FP register.",
-            "syntax": "C.FLD dest_reg, offset(basecreg)",
-            "architecture_modes": ["RV32", "RV64"]
         },
         {
             "mnemonic": "c.lw",
@@ -2185,7 +2125,7 @@
                     "name": "offset_plus_basecreg",
                     "type": "offset_plus_basecreg",
                     "role": "src",
-                    "size": "5_bits_unsigned"
+                    "size": "5_bits_shift_2_unsigned"
                 }
             ],
             "type": "CL",
@@ -2207,7 +2147,7 @@
                     "name": "offset_plus_basecreg",
                     "type": "offset_plus_basecreg",
                     "role": "src",
-                    "size": "5_bits_unsigned"
+                    "size": "5_bits_shift_3_unsigned"
                 }
             ],
             "type": "CL",
@@ -2215,28 +2155,6 @@
             "description": "Loads a 64-bit doubleword from memory into a register.",
             "syntax": "C.LD dest_reg, offset(basecreg)",
             "architecture_modes": ["RV64"]
-        },
-        {
-            "mnemonic": "c.fsd",
-            "operands": [
-                {
-                    "name": "src_reg",
-                    "type": "creg",
-                    "role": "src",
-                    "size": "full_register_width"
-                },
-                {
-                    "name": "offset_plus_basecreg",
-                    "type": "offset_plus_basecreg",
-                    "role": "dest",
-                    "size": "5_bits_unsigned"
-                }
-            ],
-            "type": "CS",
-            "group": "store",
-            "description": "Stores a double-precision floating-point value from an FP register to memory.",
-            "syntax": "C.FSD src_reg, offset(basecreg)",
-            "architecture_modes": ["RV32", "RV64"]
         },
         {
             "mnemonic": "c.sw",
@@ -2251,7 +2169,7 @@
                     "name": "offset_plus_basecreg",
                     "type": "offset_plus_basecreg",
                     "role": "dest",
-                    "size": "5_bits_unsigned"
+                    "size": "5_bits_shift_2_unsigned"
                 }
             ],
             "type": "CS",
@@ -2273,7 +2191,7 @@
                     "name": "offset_plus_basecreg",
                     "type": "offset_plus_basecreg",
                     "role": "dest",
-                    "size": "5_bits_unsigned"
+                    "size": "5_bits_shift_3_unsigned"
                 }
             ],
             "type": "CS",
@@ -2289,7 +2207,7 @@
                     "name": "offset",
                     "type": "offset_imm",
                     "role": "src",
-                    "size": "12_bits_signed"
+                    "size": "11_bits_shift_1_signed"
                 }
             ],
             "type": "CJ",
@@ -2353,7 +2271,7 @@
                     "name": "offset",
                     "type": "offset_imm",
                     "role": "src",
-                    "size": "9_bits_signed"
+                    "size": "8_bits_shift_1_signed"
                 }
             ],
             "type": "CB",
@@ -2375,7 +2293,7 @@
                     "name": "offset",
                     "type": "offset_imm",
                     "role": "src",
-                    "size": "9_bits_signed"
+                    "size": "8_bits_shift_1_signed"
                 }
             ],
             "type": "CB",
@@ -2394,16 +2312,22 @@
                     "size": "full_register_width"
                 },
                 {
+                    "name": "sp",
+                    "type": "implicit_operand",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
                     "name": "immediate",
-                    "type": "imm",
+                    "type": "nzimm",
                     "role": "src",
-                    "size": "8_bits_unsigned"
+                    "size": "8_bits_shift_2_unsigned"
                 }
             ],
             "type": "CIW",
             "group": "arithmetic",
             "description": "Adds a non-zero 8-bit unsigned immediate (scaled by 4) to the stack pointer (sp) and writes the result to dest_reg.",
-            "syntax": "C.ADDI4SPN dest_reg, immediate",
+            "syntax": "C.ADDI4SPN dest_reg, sp, immediate",
             "architecture_modes": ["RV32", "RV64"]
         },
         {

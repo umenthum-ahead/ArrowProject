@@ -121,7 +121,7 @@ class Memory:
 
         if memory_block is None:
             """
-            Need to allocate a MemoryBlock that will wrap this Memory instance. 
+            Need to allocate a MemoryBlock that will wrap this Memory instance.
             if Memory is shared, it might get reused memoryBlock
             """
             if shared:
@@ -238,14 +238,14 @@ class Memory:
             return self.unique_label
 
 
-    def format_reg_as_label(self, register:Register):
+    def format_reg_as_label(self, register:Register, memory_offset=None):
         '''
         print out the memory representation of label + offset, while assuming the register ALREADY holds the need label.
         This function is useful for dynamically formatting memory access instructions where the memory address is defined by a label and offset, rather than a raw address.
         '''
 
         config_manager = get_config_manager()
-        memory_offset = self.memory_block_offset
+        memory_offset = self.memory_block_offset if memory_offset is None else memory_offset
         execution_platform = config_manager.get_value('Execution_platform')
         # if execution_platform is 'baremetal':
         #     if Configuration.Architecture.x86:

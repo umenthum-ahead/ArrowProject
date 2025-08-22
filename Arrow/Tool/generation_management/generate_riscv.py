@@ -42,7 +42,7 @@ def generate_riscv(
     selected_instruction.operands = operands
 
     # set True or False if one of the operands has memory type
-    memory_usage = any(operand.type in ["offset_plus_basereg", "offset_plus_basecreg"] for operand in operands)
+    memory_usage = any(operand.type in ["offset_plus_basereg", "offset_plus_basecreg", "offset_plus_fixedbasereg"] for operand in operands)
     if memory_usage:
         if src is not None and isinstance(src, Memory):
             memory_operand = src
@@ -53,10 +53,9 @@ def generate_riscv(
 
         # setting an address register to be used as part of the dynamic_init if a memory operand is used
         memory_usage_with_basecreg = any(operand.type == "offset_plus_basecreg" for operand in selected_instruction.operands)
+        memory_usage_with_fixedbasereg = any(operand.type. == "offset_plus_fixedbasereg" for operand in selected_instruction.operands)
         if memory_usage_with_basecreg:
-            dynamic_init_memory_address_reg = current_state.register_manager.get_and_reserve(reg_type="creg")
-        else:
-            free_regs = current_state.register_manager.get_free_registers(reg_type="gpr")
+            free_regs = current_state.register_manager.get_free_registers()
             # filter out the 8 common registers that can be used by creg instructions
             creg_regs = [reg for reg in free_regs if str(reg) in ['s0', 's1', 'a0', 'a1', 'a2', 'a3', 'a4', 'a5']]
             if creg_regs:
@@ -65,6 +64,11 @@ def generate_riscv(
             else:
                 raise RuntimeError(f"Register manager ran out of free registers")
             dynamic_init_memory_address_reg = selected_reg
+        elif memory_usage_with_fixedbasereg:
+            reg_name = [operand['name'] for operand in selected_instruction.operands if operand['type'] == "offset_plus_fixedbasereg"][0]
+            dynamic_init_memory_address_reg = current_state.register_manager.get_and_reserve(reg_name=reg_name)
+        else:
+            dynamic_init_memory_address_reg = current_state.register_manager.get_and_reserve(reg_type="gpr")
 
         comment = f"dynamic init: loading {dynamic_init_memory_address_reg} for next instruction"
         if memory_operand.reused_memory:
@@ -89,10 +93,12 @@ def generate_riscv(
                 eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg)
             else:
                 eval_operand = dest
-        elif operand.type == "gpr":
-            eval_operand = current_state.register_manager.get(reg_type="gpr")
+        elif operand.type == "implicit_operand":
+            eval_operand = operand.name
+        elif operand.type == "reg":
+            eval_operand = current_state.register_manager.get()
         elif operand.type == 'creg':
-            free_regs = current_state.register_manager.get_free_registers(reg_type="creg")
+            free_regs = current_state.register_manager.get_free_registers()
             # filter out the 8 common registers that can be used by creg instructions
             creg_regs = [reg for reg in free_regs if str(reg) in ['s0', 's1', 'a0', 'a1', 'a2', 'a3', 'a4', 'a5']]
             if creg_regs:
@@ -100,8 +106,8 @@ def generate_riscv(
                 eval_operand = selected_reg
             else:
                 raise RuntimeError(f"Register manager ran out of free registers")
-        elif operand.type == "imm":
-            random_imm = generate_random_imm_with_size(operand.size)
+        elif operand.type in ["imm", "nzimm"]:
+            random_imm = generate_random_imm_with_size(operand.size, nzimm=(operand.type == "nzimm"))
             eval_operand = random_imm
             if selected_instruction.mnemonic in ['auipc', 'lui']:
                 # For the li instruction, we need to set the immediate value in the next register as well
@@ -109,11 +115,12 @@ def generate_riscv(
         elif operand.type == "iorw":
             random_iorw = random.randint(1, 15)
             eval_operand = ''.join("iorw"[i] for i in range(4) if random_iorw & (1 << (3 - i)))
-        elif operand.type in ["offset_plus_basereg", "offset_plus_basecreg"]:
+        elif operand.type in ["offset_plus_basereg", "offset_plus_basecreg", "offset_plus_fixedbasereg"]:
             # For every memory usage, we will plant a dynamic_init instruction to place that memory address in a temp register
             # this is done to avoid using memories offset due to their formatting requirements and my lack of knowledge.
             # TODO:: need to improve that logic and integrate offset allocation and avoid dynamic_init where possible!
-            eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg)
+            offset = generate_random_imm_with_size(operand['size'])
+            eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg, offset)
         elif operand.type == "offset_imm":
             eval_operand = random.randint(0, 100)
         else:
@@ -131,7 +138,7 @@ def generate_riscv(
     return instruction_list
 
 
-def generate_random_imm_with_size(size_description):
+def generate_random_imm_with_size(size_description, nzimm=False):
     """
     Generates a random number based on the given size description.
     The size description should be in the form of '<bit>_bit_<signed/unsigned>'.
@@ -156,8 +163,8 @@ def generate_random_imm_with_size(size_description):
     # 20-bit signed should ranges is huge, yet "auipc t0, -0x800" passes while "auipc t0, -0x801" fails on "-0x801": operand is out of range
     # so, as a work-around, if bits is larger then 10, I'm setting it to 10
     # TODO:: need to check why is that and refactor this code
-    if bits > 10:
-        bits = 10
+    # if bits > 10:
+    #     bits = 10
     # TODO:: fix this workaround!!
     # TODO:: fix this workaround!!
     # TODO:: fix this workaround!!
@@ -173,5 +180,13 @@ def generate_random_imm_with_size(size_description):
         min_val = 0
         max_val = (2 ** bits) - 1
 
+    retval = random.randint(min_val, max_val)
+    if nzimm and retval == 0:
+        retval = 1
+    # Now shift to generate the proper immediate value for compiler
+    if size_parts[2] == 'shift':
+        shift_amount = int(size_parts[3])
+        retval = retval << shift_amount
+
     # Return a random value within the computed range
-    return random.randint(min_val, max_val)
+    return retval

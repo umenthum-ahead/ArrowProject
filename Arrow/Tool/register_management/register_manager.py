@@ -10,7 +10,7 @@ class RegisterManager:
     def get_riscv_registers() -> list[Register]:
         '''
         Summary of RISC-V Registers:
-            General Purpose: x0 (zero), x1 (ra - return address), x2 (sp - stack pointer), x3 (gp - global pointer), x4 (tp - thread pointer), 
+            General Purpose: x0 (zero), x1 (ra - return address), x2 (sp - stack pointer), x3 (gp - global pointer), x4 (tp - thread pointer),
                 x5-x7 (t0-t2 - temporaries), x8-x9 (s0-s1 - saved), x10-x17 (a0-a7 - func args), x18-x27 (s2-s11 - more saved), x28-x31 (t3-t6 - more temporaries).
             Special Purpose: pc (program counter), csr (control and status registers).
             Floating-Point/SIMD: f0-f31 (floating-point), v0-v31 (vector registers).
@@ -27,10 +27,15 @@ class RegisterManager:
             reg = Register(name_mapping={64:f"a{i}"}, type="gpr", default_size=64, is_random=True)
             ret.append(reg)
 
+        #for name in (["x0","ra","sp","gp","tp"]):
         # TODO FIXME scenarios assuming ra can be used functionally, so avoid using it randomly,
         # should remove that assumption later and allow ra to be used randomly
-        for name in (["x0","ra","sp","gp","tp"]):
+        for name in (["x0","sp","gp","tp"]):
             reg = Register(name_mapping={64:name}, type="gpr", default_size=64, is_random=False)
+            ret.append(reg)
+
+        for i in range(0,32):
+            reg = Register(name_mapping={64:f"f{i}"}, type="fp", default_size=64, is_random=True)
             ret.append(reg)
 
         return ret
@@ -206,7 +211,7 @@ class RegisterManager:
                 # No available child
                 raise RuntimeError(f"Register manager ran out of free registers")
 
-    def get_and_reserve(self, reg_type:str="gpr") -> Register:
+    def get_and_reserve(self, reg_name:str=None, reg_type:str="gpr") -> Register:
         """
         Selects a random free register, marks them as used (reserved = True),
         and returns the selected register. If no available register is found, raise Error
@@ -217,18 +222,26 @@ class RegisterManager:
             unique_reg_types = list(set(reg_types))            # get unique types
             raise ValueError(f"Invalid register type: `{reg_type}`. Please use one of the following types: {', '.join(unique_reg_types)}")
 
-        free_regs = self.get_free_registers(reg_type=reg_type)
-        if free_regs:
-            if Configuration.Architecture.riscv:
-                free_regs = [reg for reg in free_regs if str(reg) != "x0"]
-
-            selected_reg = random.choice(free_regs)
-
-            selected_reg.set_reserve()
-            return selected_reg
+        selected_reg = None
+        if reg_name:
+            for reg in self._registers_pool:
+                if reg.name == reg_name:
+                    selected_reg = reg
+            if not selected_reg:
+                raise ValueError(f'Invalid value, register {reg_name} is not part of registers list ')
         else:
-            # No available child
-            raise RuntimeError(f"Register manager ran out of free registers")
+            free_regs = self.get_free_registers(reg_type=reg_type)
+            if free_regs:
+                if Configuration.Architecture.riscv:
+                    free_regs = [reg for reg in free_regs if str(reg) != "x0"]
+
+                selected_reg = random.choice(free_regs)
+            else:
+                # No available child
+                raise RuntimeError(f"Register manager ran out of free registers")
+
+        selected_reg.set_reserve()
+        return selected_reg
 
     @staticmethod
     def reserve(register: Register):
