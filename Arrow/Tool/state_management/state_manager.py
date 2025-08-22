@@ -25,6 +25,9 @@ class State(ABC):
         self.register_manager: RegisterManager = register_manager
         self.enabled_page_tables: list[PageTable] = enabled_page_tables
         self.current_code_block: MemorySegment = current_code_block
+        
+        # Abstract segment_manager interface - to be set by subclasses
+        self.segment_manager = None
 
     @abstractmethod
     def __repr__(self):
@@ -58,6 +61,44 @@ class X86State(State):
         self.processor_mode: str = processor_mode
         self.base_register: Register = base_register
         self.base_register_value: int = base_register_value
+        
+        # Set up segment_manager based on paging status
+        self._setup_segment_manager()
+
+    def _setup_segment_manager(self):
+        """Set up segment_manager for x86 state based on paging configuration."""
+        from Arrow.Utils.configuration_management import Configuration
+        
+        if Configuration.Knobs.Memory.paging_enabled.get_value() and self.enabled_page_tables:
+            # Use the first page table's segment manager for paging-enabled case
+            self.segment_manager = self.enabled_page_tables[0].segment_manager
+        else:
+            # Use non-paging segment manager for bare-metal case
+            from Arrow.Tool.memory_management.memlayout.non_paging_segment_manager import NonPagingSegmentManager
+            self.segment_manager = NonPagingSegmentManager(name=f"x86_bare_metal_{self.state_name}")
+            
+            # Create a basic code segment for AsmLogger if current_code_block is None
+            if self.current_code_block is None:
+                self.current_code_block = self.segment_manager.allocate_memory_segment(
+                    name=f"{self.state_name}_default_code",
+                    byte_size=0x1000,  # 4KB default
+                    memory_type=Configuration.Memory_types.CODE,
+                    exclusive_segment=False
+                )
+            
+            # Create default DATA segments to prevent empty sequence errors
+            self.segment_manager.allocate_memory_segment(
+                name=f"{self.state_name}_default_data_shared",
+                byte_size=0x1000,  # 4KB default
+                memory_type=Configuration.Memory_types.DATA_SHARED,
+                exclusive_segment=False
+            )
+            self.segment_manager.allocate_memory_segment(
+                name=f"{self.state_name}_default_data_preserve",
+                byte_size=0x1000,  # 4KB default
+                memory_type=Configuration.Memory_types.DATA_PRESERVE,
+                exclusive_segment=False
+            )
 
     def __repr__(self):
         return (f"X86 State(name={self.state_name}, "
@@ -85,6 +126,44 @@ class RISCVState(State):
         self.base_register: Register = base_register
         self.base_register_value: int = base_register_value
         self.stack_pointer: Optional[Register] = stack_pointer
+        
+        # Set up segment_manager based on paging status
+        self._setup_segment_manager()
+
+    def _setup_segment_manager(self):
+        """Set up segment_manager for RISC-V state based on paging configuration."""
+        from Arrow.Utils.configuration_management import Configuration
+        
+        if Configuration.Knobs.Memory.paging_enabled.get_value() and self.enabled_page_tables:
+            # Use the first page table's segment manager for paging-enabled case
+            self.segment_manager = self.enabled_page_tables[0].segment_manager
+        else:
+            # Use non-paging segment manager for bare-metal case
+            from Arrow.Tool.memory_management.memlayout.non_paging_segment_manager import NonPagingSegmentManager
+            self.segment_manager = NonPagingSegmentManager(name=f"riscv_bare_metal_{self.state_name}")
+            
+            # Create a basic code segment for AsmLogger if current_code_block is None
+            if self.current_code_block is None:
+                self.current_code_block = self.segment_manager.allocate_memory_segment(
+                    name=f"{self.state_name}_default_code",
+                    byte_size=0x1000,  # 4KB default
+                    memory_type=Configuration.Memory_types.CODE,
+                    exclusive_segment=False
+                )
+            
+            # Create default DATA segments to prevent empty sequence errors
+            self.segment_manager.allocate_memory_segment(
+                name=f"{self.state_name}_default_data_shared",
+                byte_size=0x1000,  # 4KB default
+                memory_type=Configuration.Memory_types.DATA_SHARED,
+                exclusive_segment=False
+            )
+            self.segment_manager.allocate_memory_segment(
+                name=f"{self.state_name}_default_data_preserve",
+                byte_size=0x1000,  # 4KB default
+                memory_type=Configuration.Memory_types.DATA_PRESERVE,
+                exclusive_segment=False
+            )
 
     def __repr__(self):
         return (f"RISCV State(name={self.state_name}, "
@@ -114,6 +193,9 @@ class ARMState(State):
         # Per EL code block, for cases we are switching code and later want to get back to the same code block
         self.per_el_code_block: dict[int, MemorySegment] = {}
         self.per_el_code_block[self.current_el_level] = current_code_block
+        
+        # Set up segment_manager to delegate to current page table
+        self.segment_manager = current_el_page_table.segment_manager if current_el_page_table else None
 
     def __repr__(self):
         return (f"ARM State(name={self.state_name}, "

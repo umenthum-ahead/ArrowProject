@@ -26,18 +26,11 @@ class RegisterManager:
         for i in range(0,8):
             reg = Register(name_mapping={64:f"a{i}"}, type="gpr", default_size=64, is_random=True)
             ret.append(reg)
-        for i in range(0,8):
-            reg = Register(name=f"a{i}", type="gpr", is_random=True)
-            ret.append(reg)
 
         # TODO FIXME scenarios assuming ra can be used functionally, so avoid using it randomly,
         # should remove that assumption later and allow ra to be used randomly
         for name in (["x0","ra","sp","gp","tp"]):
             reg = Register(name_mapping={64:name}, type="gpr", default_size=64, is_random=False)
-            ret.append(reg)
-
-        for i in range(0,32):
-            reg = Register(name=f"f{i}", type="fp", is_random=True)
             ret.append(reg)
 
         return ret

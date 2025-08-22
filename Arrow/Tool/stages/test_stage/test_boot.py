@@ -26,77 +26,89 @@ def do_boot():
 
     # TODO:: refactor this logic!!!!
 
-    # bsp_code is the code that will be executed by all cores, and will jump to the boot code of the core
-    bsp_boot_blocks = do_bsp_boot()
+    # Only do paging-related boot code if paging is enabled
+    if Configuration.Knobs.Memory.paging_enabled.get_value():
+        # bsp_code is the code that will be executed by all cores, and will jump to the boot code of the core
+        if Configuration.Architecture.arm:
+            bsp_boot_blocks = do_bsp_boot()
 
-    end_boot_barrier_label = Label("end_boot_barrier")
-    for state in state_manager.states_dict:
-        curr_state = state_manager.set_active_state(state)
-        curr_page_table = curr_state.current_el_page_table
+        end_boot_barrier_label = Label("end_boot_barrier")
+        for state in state_manager.states_dict:
+            curr_state = state_manager.set_active_state(state)
+            curr_page_table = curr_state.current_el_page_table
 
-        stack_block = MemoryManager.MemoryBlock(name="stack_block", byte_size=4*1024, _is_stack=True)
-        boot_blocks = curr_page_table.segment_manager.get_segments(pool_type=Configuration.Memory_types.BOOT_CODE)
-        if len(boot_blocks) != 1:
-            raise ValueError(
-                "boot_blocks must contain exactly one element, but it contains: {}".format(len(boot_blocks)))
-        boot_block = boot_blocks[0]
+            stack_block = MemoryManager.MemoryBlock(name="stack_block", byte_size=4*1024, _is_stack=True)
+            boot_blocks = curr_page_table.segment_manager.get_segments(pool_type=Configuration.Memory_types.BOOT_CODE)
+            if len(boot_blocks) != 1:
+                raise ValueError(
+                    "boot_blocks must contain exactly one element, but it contains: {}".format(len(boot_blocks)))
+            boot_block = boot_blocks[0]
 
-        switch_code(boot_block)  # switching from a None code block into boot
+            switch_code(boot_block)  # switching from a None code block into boot
 
-        logger.debug(f"BODY:: Running boot code")
-        AsmLogger.comment(f"========================= {curr_state.state_name.upper()} BOOT CODE - start =====================")
+            logger.debug(f"BODY:: Running boot code")
+            AsmLogger.comment(f"========================= {curr_state.state_name.upper()} BOOT CODE - start =====================")
 
-        if Configuration.Architecture.x86:
-            execution_platform = config_manager.get_value('Execution_platform')
-            if execution_platform == "baremetal": 
-                AsmLogger.comment(
-                    f"-- memory range address is {hex(curr_state.memory_range.address)} with size of {hex(curr_state.memory_range.byte_size)}")
-                AsmLogger.comment(
-                    f"-- setting base_register {curr_state.base_register} to address of {hex(curr_state.base_register_value)}")
-                # AsmLogger.store_value_into_register(register=current_state.base_register, value=current_state.base_register_value)
+            if Configuration.Architecture.x86:
+                execution_platform = config_manager.get_value('Execution_platform')
+                if execution_platform == "baremetal": 
+                    AsmLogger.comment(
+                        f"-- memory range address is {hex(curr_state.memory_range.address)} with size of {hex(curr_state.memory_range.byte_size)}")
+                    AsmLogger.comment(
+                        f"-- setting base_register {curr_state.base_register} to address of {hex(curr_state.base_register_value)}")
+                    # AsmLogger.store_value_into_register(register=current_state.base_register, value=current_state.base_register_value)
 
-        skip_boot = Configuration.Knobs.Config.skip_boot
-        if not skip_boot:
-            enable_page_tables()
-            enable_exception_tables()
-            set_init_system_registers()
-            set_privilege_level()
-            #generate(instruction_count=10)
-            logger.debug("============ Boot end barrier")
-            Barrier(end_boot_barrier_label)
+            skip_boot = Configuration.Knobs.Config.skip_boot
+            if not skip_boot:
+                enable_page_tables()
+                enable_exception_tables()
+                set_init_system_registers()
+                set_privilege_level()
+                #generate(instruction_count=10)
+                logger.debug("============ Boot end barrier")
+                Barrier(end_boot_barrier_label)
 
-        # requesting current_page again, as the set_privilege_level might have changed it
-        curr_state = state_manager.get_active_state()
-        curr_page_table = curr_state.current_el_page_table
+            # requesting current_page again, as the set_privilege_level might have changed it
+            curr_state = state_manager.get_active_state()
+            curr_page_table = curr_state.current_el_page_table
 
-        AsmLogger.comment(f"Stack segment generated at {stack_block.address} with size {stack_block.byte_size}")
+            AsmLogger.comment(f"Stack segment generated at {stack_block.address} with size {stack_block.byte_size}")
 
-        if Configuration.Architecture.x86:
-            AsmLogger.comment(f"TODO: stack initialization for x86")
-        elif Configuration.Architecture.riscv:
-            # TODO pick random stack pointer register instead of ABI sp
-            sp = RegisterManager.get(reg_name='sp')
-            sp.set_reserve()
-            #stack_mem = MemoryManager.Memory(name='stack_memory', memory_block=stack_block, byte_size=stack_block.byte_size, memory_block_offset=0)
-            Configuration.RiscvConfig.register_stack_memory(current_state.privilege_level, stack_block)
-            if current_state.privilege_level == PrivilegeLevel.RISCV.MACHINE:
-                AsmLogger.asm(f"la sp, {stack_block.unique_label} + {stack_block.byte_size - 8}", comment="Load the value of the stack")
-        elif Configuration.Architecture.arm:
-            AsmLogger.comment(f"TODO: stack initialization for ARM")
-        else:
-            raise ValueError(f"Unsupported architecture")
+            if Configuration.Architecture.x86:
+                AsmLogger.comment(f"TODO: stack initialization for x86")
+            elif Configuration.Architecture.riscv:
+                # TODO pick random stack pointer register instead of ABI sp
+                sp = RegisterManager.get(reg_name='sp')
+                sp.set_reserve()
+                #stack_mem = MemoryManager.Memory(name='stack_memory', memory_block=stack_block, byte_size=stack_block.byte_size, memory_block_offset=0)
+                Configuration.RiscvConfig.register_stack_memory(current_state.privilege_level, stack_block)
+                if current_state.privilege_level == PrivilegeLevel.RISCV.MACHINE:
+                    AsmLogger.asm(f"la sp, {stack_block.unique_label} + {stack_block.byte_size - 8}", comment="Load the value of the stack")
+            elif Configuration.Architecture.arm:
+                AsmLogger.comment(f"TODO: stack initialization for ARM")
+            else:
+                raise ValueError(f"Unsupported architecture")
 
-        # selecting random block to jump to for test body
-        available_blocks = curr_page_table.segment_manager.get_segments(pool_type=Configuration.Memory_types.CODE, non_exclusive_only=True)
-        selected_block = choice.choice(values=available_blocks)
-        branch_to_segment.BranchToSegment(selected_block).one_way_branch()
+            # selecting random block to jump to for test body
+            available_blocks = curr_page_table.segment_manager.get_segments(pool_type=Configuration.Memory_types.CODE, non_exclusive_only=True)
+            selected_block = choice.choice(values=available_blocks)
+            branch_to_segment.BranchToSegment(selected_block).one_way_branch()
 
-        # setting back to boot code for the print, later return to selected block
-
-        curr_state.current_code_block = boot_block
-        AsmLogger.comment(f"========================= {curr_state.state_name.upper()} BOOT CODE - end =====================")
-        curr_state.current_code_block = selected_block
-        switch_code(selected_block)
+            # setting back to boot code for the print, later return to selected block
+            curr_state.current_code_block = boot_block
+            AsmLogger.comment(f"========================= {curr_state.state_name.upper()} BOOT CODE - end =====================")
+            curr_state.current_code_block = selected_block
+            switch_code(selected_block)
+    else:
+        # Simplified boot process when paging is disabled
+        logger.debug("Paging disabled - using simplified boot process")
+        
+        # When paging is disabled, skip memory block and AsmLogger operations
+        # The test generation will continue without boot code generation
+        
+        # Basic system initialization without page tables or AsmLogger
+        # Skip AsmLogger-dependent functions when paging is disabled
+        logger.debug("Skipping boot code generation - paging disabled")
 
     # # Create a new list with blocks in the desired order
     # all_code_blocks = []

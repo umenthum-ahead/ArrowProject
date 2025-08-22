@@ -21,4 +21,5 @@ class Knobs:
         code_segment_count = Knob(name='code_segment_count', value_func=lambda: random.randint(4,8), read_only=True, dynamic=False, global_knob=False)
         data_segment_count = Knob(name='data_segment_count', value_func=lambda: random.randint(3,6), read_only=True, dynamic=False, global_knob=False)
         shared_memory_reuse = Knob(name='shared_memory_reuse', value_func=lambda: random.randint(45, 60), read_only=True, dynamic=False, global_knob=False, description="Probability to reuse shared memory, 100 mean always, default is around 50 ")
+        paging_enabled = Knob(name='paging_enabled', value_func=lambda: Architecture.arm, read_only=True, dynamic=False, global_knob=False, description="Enable MMU/paging support for virtual memory management")
 

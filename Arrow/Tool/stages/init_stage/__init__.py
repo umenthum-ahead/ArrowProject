@@ -9,13 +9,13 @@ from Arrow.Tool.state_management.switch_state import SwitchPageTable
 from Arrow.Tool.state_management.state_manager import State
 from Arrow.Tool.register_management import register_manager
 from Arrow.Tool.memory_management.memlayout.interval_lib.interval_lib import IntervalLib
+from Arrow.Arrow_API.resources.memory_manager import MemoryManager_API as MemoryManager
 from Arrow.Utils.APIs.choice import choice
 
 from Arrow.Tool.memory_management.memlayout.page_table_manager import get_page_table_manager
 from Arrow.Tool.memory_management.memory_logger import get_memory_logger, print_memory_state
 from Arrow.Tool.exception_management import get_exception_manager
 
-from Arrow.Tool.memory_management import memory_manager, MemoryRange
 from Arrow.Utils.configuration_management.enums import PrivilegeLevel
 
 def init_state():
@@ -44,16 +44,11 @@ def init_state():
         logger.info(f'--------------- Creating state(s) for {state_id}')
 
         # allocating 2M MemoryRange per core, and set memory_manager withing this range
-        core_memory_region_start, core_memory_region_size = region_intervals.allocate(Configuration.ByteSize.SIZE_2M.in_bytes())
-        core_memory_range = MemoryRange(core=core_id, address=core_memory_region_start, byte_size= core_memory_region_size)
+        core_memory_region_start = 0x10000000 + i * (2 * 1024 * 1024)
+        core_memory_region_size = 2 * 1024 * 1024
 
         if Configuration.Architecture.x86:
-            # allocating 2M MemoryRange per core, and set segment_manager withing this range
-            core_memory_region_start, core_memory_region_size = region_intervals.find_and_remove(Configuration.ByteSize.SIZE_2M.in_bytes())
-            
-            core_memory_range = MemoryRange(core=state_id, address=core_memory_region_start,
-                                            byte_size=core_memory_region_size)
-            base_register_value = core_memory_range.address
+            base_register_value = core_memory_region_start
             
             curr_state = State.create_state(
                 state_name=state_id,
@@ -69,7 +64,7 @@ def init_state():
 
             stack_pointer = None
         elif Configuration.Architecture.riscv:
-            base_register_value = core_memory_range.address + (core_memory_range.byte_size // 2)
+            base_register_value = core_memory_region_start + (core_memory_region_size // 2)
             base_register_value = base_register_value & ~0b11  # Round Down (to the nearest multiple of 4) to make it 4-byte aligned
             stack_pointer = register_manager.RegisterManager().get(reg_name="sp", reg_type="gpr")
             register_manager.RegisterManager().reserve(stack_pointer)
@@ -78,23 +73,23 @@ def init_state():
                 # Managed mode: Create separate states for each privilege level on RISC-V
                 privilege_levels = [PrivilegeLevel.RISCV.MACHINE, PrivilegeLevel.RISCV.SUPERVISOR, PrivilegeLevel.RISCV.USER]
                 for priv_level in privilege_levels:
-                    state_id = f'{core_id}_priv_{priv_level.name.lower()}'
-                    logger.info(f'    Creating managed privilege state {state_id} (privilege level {priv_level})')
+                    priv_state_id = f'{state_id}_priv_{priv_level.name.lower()}'
+                    logger.info(f'    Creating managed privilege state {priv_state_id} (privilege level {priv_level})')
 
                     new_register_manager = register_manager.RegisterManager()
                     curr_state = State(
-                        state_name=state_id,
+                        state_name=priv_state_id,
                         processor_mode=Configuration.Knobs.Config.processor_mode,
                         privilege_level=priv_level,
                         register_manager=new_register_manager,
-                        memory_range=core_memory_range,
-                        memory_manager=memory_manager.MemoryManager(memory_range=core_memory_range),
+                        memory_range=None,
+                        memory_manager=None,
                         current_code=None,
                         base_register=None,
                         base_register_value=base_register_value,
                         stack_pointer=stack_pointer,
                     )
-                    state_manager.add_state(state_id, curr_state)
+                    state_manager.add_state(priv_state_id, curr_state)
                     sp_reg = Configuration.RiscvConfig.get_privileged_stack_pointer(priv_level)
                     sp_reg = new_register_manager.get(reg_name=sp_reg.name)
                     new_register_manager.reserve(sp_reg)
@@ -144,7 +139,7 @@ def init_state():
         default_state = 'core_0_priv_machine'  # Machine privilege level
         logger.info(f"Setting default active state to {default_state} (machine privilege level)")
     else:
-        default_state = 'core_0'
+        default_state = 'core0_thread0'
         logger.info(f"Setting default active state to {default_state}")
     
     state_manager.set_active_state(default_state)
@@ -177,17 +172,35 @@ def init_page_tables():
 
     for state_name in state_manager.get_all_states():
         # NOTE: Must create the page tables first before allocating pages
-        el3r = page_table_manager.create_page_table(page_table_name=f"{state_name}_el3_root", core_id=state_name, execution_context=Configuration.Execution_context.EL3)
-        page_table_manager.create_page_table(page_table_name=f"{state_name}_el1_ns", core_id=state_name, execution_context=Configuration.Execution_context.EL1_NS)
-
-        curr_state = state_manager.set_active_state(state_name)
-        curr_state.current_el_page_table = el3r
-        stack_block = curr_state.memory_manager.allocate_memory_segment(name=f"stack_segment", byte_size=0x1000, memory_type=Configuration.Memory_types.STACK)
+        
+        if Configuration.Architecture.arm:
+            # ARM-specific page table creation with exception levels
+            el3r = page_table_manager.create_page_table(page_table_name=f"{state_name}_el3_root", core_id=state_name, execution_context=Configuration.Execution_context.EL3)
+            page_table_manager.create_page_table(page_table_name=f"{state_name}_el1_ns", core_id=state_name, execution_context=Configuration.Execution_context.EL1_NS)
+            
+            curr_state = state_manager.set_active_state(state_name)
+            curr_state.current_el_page_table = el3r
+        elif Configuration.Architecture.riscv:
+            # RISC-V page table creation - use machine mode as default
+            main_pt = page_table_manager.create_page_table(page_table_name=f"{state_name}_main", core_id=state_name, execution_context=Configuration.Execution_context.EL3)  # Using EL3 as placeholder until RISC-V contexts are added
+            
+            curr_state = state_manager.set_active_state(state_name)
+            curr_state.current_el_page_table = main_pt
+        elif Configuration.Architecture.x86:
+            # x86 page table creation
+            main_pt = page_table_manager.create_page_table(page_table_name=f"{state_name}_main", core_id=state_name, execution_context=Configuration.Execution_context.EL3)  # Using EL3 as placeholder until x86 contexts are added
+            
+            curr_state = state_manager.set_active_state(state_name)
+            curr_state.current_el_page_table = main_pt
+        else:
+            raise ValueError(f"Unsupported architecture for page table initialization")
+            
+        stack_block = MemoryManager.MemorySegment(name=f"stack_segment", byte_size=0x1000, memory_type=Configuration.Memory_types.STACK)
         logger.debug(f"init_memory: allocating stack_block {stack_block}")
 
-        code_block_count = Configuration.Knobs.Memory.code_block_count.get_value()
-        for i in range(code_block_count):
-            code_block = curr_state.memory_manager.allocate_memory_segment(name=f"code_segment_{i}", byte_size=0x1000, memory_type=Configuration.Memory_types.CODE)
+        code_segment_count = Configuration.Knobs.Memory.code_segment_count.get_value()
+        for i in range(code_segment_count):
+            code_block = MemoryManager.MemorySegment(name=f"code_segment_{i}", byte_size=0x1000, memory_type=Configuration.Memory_types.CODE)
             logger.debug(f"init_memory: allocating code_block {code_block}")
 
     state_manager.set_active_state("core0_thread0")
@@ -235,24 +248,38 @@ def init_segments():
     page_table_manager = get_page_table_manager()
     page_tables = page_table_manager.get_all_page_tables()
 
-    # TODO:: make this configurable as a knob
-    bsp_boot_address = 0x82000000
+    # ARM-specific BSP boot code allocation
+    if Configuration.Architecture.arm:
+        # TODO:: make this configurable as a knob
+        bsp_boot_address = 0x82000000
 
-    core_0_el3_page_table = next(page_table for page_table in page_tables if page_table.core_id == "core0_thread0" and page_table.execution_context == Configuration.Execution_context.EL3)
-    # Allocate BSP boot segment. a single segment that act as trampoline for all cores
-    bsp_boot_segment = core_0_el3_page_table.segment_manager.allocate_memory_segment(name=f"BSP__boot_segment", 
-                                                                    byte_size=0x200,
-                                                                    memory_type=Configuration.Memory_types.BSP_BOOT_CODE, 
-                                                                    alignment_bits=4, 
-                                                                    VA_eq_PA=True,
-                                                                    force_address=bsp_boot_address,
-                                                                    exclusive_segment=True)
-    memory_logger.info(f"============ init_segments: allocated BSP_boot_segment {bsp_boot_segment} at {hex(bsp_boot_address)}")
+        core_0_el3_page_table = next(page_table for page_table in page_tables if page_table.core_id == "core0_thread0" and page_table.execution_context == Configuration.Execution_context.EL3)
+        # Allocate BSP boot segment. a single segment that act as trampoline for all cores
+        bsp_boot_segment = core_0_el3_page_table.segment_manager.allocate_memory_segment(name=f"BSP__boot_segment", 
+                                                                        byte_size=0x200,
+                                                                        memory_type=Configuration.Memory_types.BSP_BOOT_CODE, 
+                                                                        alignment_bits=4, 
+                                                                        VA_eq_PA=True,
+                                                                        force_address=bsp_boot_address,
+                                                                        exclusive_segment=True)
+        memory_logger.info(f"============ init_segments: allocated BSP_boot_segment {bsp_boot_segment} at {hex(bsp_boot_address)}")
 
-    # Allocating one cross-core segment, ensuring that all core and all MMUs will have one shared PA space
-    # This allocation is done here, as it is needed for all cores, and should be done before any other allocation to avoid conflicts
-    cross_page_segment = core_0_el3_page_table.segment_manager.allocate_cross_core_data_memory_segment()
-    memory_logger.info(f"============ init_segments: allocated cross_page_segment {cross_page_segment}")
+        # Allocating one cross-core segment, ensuring that all core and all MMUs will have one shared PA space
+        # This allocation is done here, as it is needed for all cores, and should be done before any other allocation to avoid conflicts
+        cross_page_segment = core_0_el3_page_table.segment_manager.allocate_cross_core_data_memory_segment()
+        memory_logger.info(f"============ init_segments: allocated cross_page_segment {cross_page_segment}")
+    
+    # Get appropriate page table for the first core
+    if Configuration.Architecture.arm:
+        # For ARM, use EL3 page table
+        first_page_table = next(page_table for page_table in page_tables if page_table.core_id == "core0_thread0" and page_table.execution_context == Configuration.Execution_context.EL3)
+    else:
+        # For RISC-V and x86, use the main page table
+        first_page_table = next(page_table for page_table in page_tables if page_table.core_id == "core0_thread0")
+        
+        # Allocate cross-core segment for non-ARM architectures
+        cross_page_segment = first_page_table.segment_manager.allocate_cross_core_data_memory_segment()
+        memory_logger.info(f"============ init_segments: allocated cross_page_segment {cross_page_segment}")
 
     for page_table in page_tables:
         memory_logger.info("")
@@ -384,8 +411,12 @@ def init_section():
 
     init_state()
     init_registers()
-    init_page_tables()
-    init_segments()
+    
+    # Only initialize page tables if paging is enabled
+    if Configuration.Knobs.Memory.paging_enabled.get_value():
+        init_page_tables()
+        init_segments()
+    
     init_exception_tables()
     print_memory_state(print_both=False)
 

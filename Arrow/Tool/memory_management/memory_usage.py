@@ -29,7 +29,12 @@ def allocate_data_memory(segment_manager: SegmentManager,
         memory: A memory operand from a random data block.
     """
     memory_logger = get_memory_logger()
-    memory_logger.info(f"==================== allocate_data_memory: {name}, memory_block_id: {memory_block_id}, type: {pool_type}, size: {hex(byte_size)}, cross_core: {cross_core}, page_table: {segment_manager.page_table.page_table_name}")
+    # Get page table name, handling both paging and non-paging segment managers
+    if hasattr(segment_manager, 'page_table') and segment_manager.page_table:
+        page_table_name = segment_manager.page_table.page_table_name
+    else:
+        page_table_name = getattr(segment_manager, 'name', 'non_paging')
+    memory_logger.info(f"==================== allocate_data_memory: {name}, memory_block_id: {memory_block_id}, type: {pool_type}, size: {hex(byte_size)}, cross_core: {cross_core}, page_table: {page_table_name}")
     config_manager = get_config_manager()
     execution_platform = config_manager.get_value('Execution_platform')
 
@@ -109,7 +114,7 @@ def allocate_data_memory(segment_manager: SegmentManager,
                 # Find an available region with proper alignment
                 allocation = selected_segment.interval_tracker.find_region(byte_size, alignment)
                 if not allocation:
-                    memory_logger.error(f"No available space in segment for allocation", level="error")
+                    memory_logger.error(f"No available space in segment for allocation")
                     raise ValueError(f"No available space in segment {selected_segment.name}")
                         
                 address, _ = allocation
@@ -122,7 +127,7 @@ def allocate_data_memory(segment_manager: SegmentManager,
                 memory_logger.info(f"DATA_PRESERVE allocation {state_name} - Segment '{selected_segment.name}' at VA:{hex(address)}, PA:{hex(pa_address)}, size:{byte_size}")
                     
             except Exception as e:
-                memory_logger.error(f"Failed to allocate data memory: {e}", level="error")
+                memory_logger.error(f"Failed to allocate data memory: {e}")
                 raise ValueError(f"Could not allocate data memory in segment {selected_segment.name}")
     else:  # 'linked_elf'
         address = None
@@ -138,7 +143,7 @@ def allocate_data_memory(segment_manager: SegmentManager,
     selected_segment.data_units_list.append(data_unit)
     memory_logger.info(f"Created DataUnit '{name}' in memory block '{memory_block_id}', segment '{selected_segment.name}'")
 
-    per_page_table_data_units = {segment_manager.page_table.page_table_name: data_unit}
+    per_page_table_data_units = {page_table_name: data_unit}
 
     if cross_core:
         from Arrow.Tool.memory_management.memlayout.page_table_manager import get_page_table_manager

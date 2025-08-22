@@ -14,7 +14,6 @@ class Memory_types(Enum):
     CODE = "code"
     DATA_SHARED = "data_shared"
     DATA_PRESERVE = "data_reserved"
-    STACK = "stack"
 
 class Execution_context(Enum):
     EL3 = "EL3" # Secure Monitor (Root/EL3)

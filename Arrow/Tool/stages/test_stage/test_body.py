@@ -15,7 +15,15 @@ from Arrow.Tool.asm_libraries.end_test import end_test_asm_convention
 
 
 def execute_scenario(scenario_instance):
-    AsmLogger.comment(f"========================== Start scenario {scenario_instance} ====================")
+    # Ensure current_code_block is set before any AsmLogger calls
+    current_state = get_current_state()
+    if current_state.current_code_block is None:
+        logger = get_logger()
+        logger.warning(f"current_code_block is None in execute_scenario, AsmLogger calls may fail")
+    
+    # Only use AsmLogger when paging is enabled
+    if Configuration.Knobs.Memory.paging_enabled.get_value():
+        AsmLogger.comment(f"========================== Start scenario {scenario_instance} ====================")
 
     # Check if we got a ScenarioWrapper instance
     if not isinstance(scenario_instance, ScenarioWrapper):
@@ -41,47 +49,68 @@ def execute_scenario(scenario_instance):
         raise ValueError(f"Error: Scenario {scenario_instance} has reserved registers that were not freed: {[str(reg) for reg in difference]}")
 
 
-    AsmLogger.comment(f"========================== End scenario {scenario_instance} ====================")
+    # Only use AsmLogger when paging is enabled
+    if Configuration.Knobs.Memory.paging_enabled.get_value():
+        AsmLogger.comment(f"========================== End scenario {scenario_instance} ====================")
 
 def do_scenario(current_scenario: Optional[int], max_scenario:Optional[int]):
     logger = get_logger()
     state_manager = get_state_manager()
     current_state = state_manager.get_active_state()
-    current_page_table = current_state.current_el_page_table
     scenario_manager = get_scenario_manager()
 
+    # Handle different state types for page table access
+    current_page_table = None
+    if hasattr(current_state, 'current_el_page_table') and current_state.current_el_page_table:
+        current_page_table = current_state.current_el_page_table
+    elif current_state.enabled_page_tables:
+        current_page_table = current_state.enabled_page_tables[0]
 
-    available_blocks = current_page_table.segment_manager.get_segments(pool_type=Configuration.Memory_types.CODE, non_exclusive_only=True)
-    # Filter the list to exclude the current code block
-    available_blocks_without_current = [block for block in available_blocks if block != current_state.current_code_block]
-    # Randomly select from the filtered list
-    selected_block = choice.choice(values=available_blocks_without_current)
+    if current_page_table:
+        available_blocks = current_page_table.segment_manager.get_segments(pool_type=Configuration.Memory_types.CODE, non_exclusive_only=True)
+        # Filter the list to exclude the current code block
+        available_blocks_without_current = [block for block in available_blocks if block != current_state.current_code_block]
+        # Randomly select from the filtered list
+        selected_block = choice.choice(values=available_blocks_without_current)
+    else:
+        # No page table available, scenario execution may be limited
+        available_blocks_without_current = []
+        selected_block = None
 
     selected_scenario = scenario_manager.get_random_scenario(tags=dict(Configuration.Knobs.Template.scenario_query.get_value()), current_privilege_level=current_state.privilege_level)
 
     info_str = f"BODY:: Running {current_state.state_name}, scenario {current_scenario}(:{max_scenario}), scenario {selected_scenario} (privilege level {current_state.privilege_level})"
     logger.info(info_str)
-    AsmLogger.comment(info_str)
+    
+    # Only use AsmLogger when paging is enabled
+    if Configuration.Knobs.Memory.paging_enabled.get_value():
+        AsmLogger.comment(info_str)
 
     if Configuration.Knobs.Config.privilege_mode_managed.get_value():
-        AsmLogger.asm(f"{selected_scenario.label}:")
+        if Configuration.Knobs.Memory.paging_enabled.get_value():
+            AsmLogger.asm(f"{selected_scenario.label}:")
         execute_scenario(selected_scenario)
-        if Configuration.Architecture.riscv:
+        if Configuration.Architecture.riscv and Configuration.Knobs.Memory.paging_enabled.get_value():
             AsmLogger.asm(f"li {Configuration.RiscvConfig.ecall_arg_reg}, {Configuration.RiscvConfig.ecall_arg_magic_val}")
             AsmLogger.asm("ecall")
-        else:
+        elif not Configuration.Architecture.riscv:
             raise ValueError("managed privilege mode is not supported in non-RISC-V architectures, please remove the 'privilege_mode_managed' knob from the configuration.")
         scenario_manager.register_scenario_for_privilege_level(current_state.privilege_level, selected_scenario)
     else:
-        # Is this a pseudo RNG to either do a one-way or two-way branch?
-        # If so... why? If ythere is no memory requirement that forces us to do this
-        # I don't see the point of this. We are not having memory consistency between scenarios
-        two_way_branch = choice.choice(values=[True, False])
-        if two_way_branch:
-            with branch_to_segment.BranchToSegment(selected_block):
+        # Only do branching operations when paging is enabled and we have blocks available
+        if selected_block is not None and Configuration.Knobs.Memory.paging_enabled.get_value():
+            # Is this a pseudo RNG to either do a one-way or two-way branch?
+            # If so... why? If ythere is no memory requirement that forces us to do this
+            # I don't see the point of this. We are not having memory consistency between scenarios
+            two_way_branch = choice.choice(values=[True, False])
+            if two_way_branch:
+                with branch_to_segment.BranchToSegment(selected_block):
+                    execute_scenario(selected_scenario)
+            else:
+                branch_to_segment.BranchToSegment(selected_block).one_way_branch()
                 execute_scenario(selected_scenario)
         else:
-            branch_to_segment.BranchToSegment(selected_block).one_way_branch()
+            # No paging or no blocks available - execute scenario without branching
             execute_scenario(selected_scenario)
 
 def do_body():
@@ -97,13 +126,36 @@ def do_body():
     
     privilege_manager = None
     for state_id in available_states:
-        core = state_id
-        per_core_scenario_count[core] = (1, int(Configuration.Knobs.Template.scenario_count)) # TODO:: replace this with per state knob state_manager.scenario_count
 
-        with SwitchState(core):
-            AsmLogger.comment(f"========================= core {core} - TEST BODY - start =====================")
-
-            current_state = state_id.get_active_state()
+        with SwitchState(state_id):
+            current_state = get_current_state()
+            
+            # Only use AsmLogger when paging is enabled
+            if Configuration.Knobs.Memory.paging_enabled.get_value():
+                # Ensure current_code_block is set before any AsmLogger calls
+                if current_state.current_code_block is None:
+                    # Get a code block to use for logging
+                    if hasattr(current_state, 'current_el_page_table') and current_state.current_el_page_table:
+                        current_page_table = current_state.current_el_page_table
+                    elif current_state.enabled_page_tables:
+                        current_page_table = current_state.enabled_page_tables[0]
+                    else:
+                        logger.warning(f"No page tables available for state {state_id}, AsmLogger calls may fail")
+                        current_page_table = None
+                    
+                    if current_page_table:
+                        available_blocks = current_page_table.segment_manager.get_segments(pool_type=Configuration.Memory_types.CODE, non_exclusive_only=True)
+                        if available_blocks:
+                            from Arrow.Tool.state_management.switch_state import switch_code
+                            selected_block = choice.choice(values=available_blocks)
+                            switch_code(selected_block)
+                        else:
+                            logger.warning(f"No code blocks available for state {state_id}, AsmLogger calls may fail")
+                
+                AsmLogger.comment(f"========================= state {state_id} - TEST BODY - start =====================")
+            else:
+                # Paging is disabled - skip AsmLogger calls
+                logger.debug(f"Paging disabled - skipping AsmLogger calls for state {state_id}")
             privilege_level = current_state.privilege_level
         
             per_state_scenario_count[state_id] = (1, int(Configuration.Knobs.Template.scenario_count)) # TODO:: replace this with per state knob state_manager.scenario_count
@@ -127,31 +179,15 @@ def do_body():
             
             # Iterate over a copy of the list to avoid modifying the list during iteration
             for state_id in available_states_for_privilege[:]:  # Create a shallow copy of the list
-                switch_state(state_id)
-                current_scenario, max_scenario = per_state_scenario_count[state_id]
-                per_state_scenario_count[state_id] = (current_scenario + 1, max_scenario)
-                if current_scenario == max_scenario:
-                    available_states_for_privilege.remove(state_id)
-                do_scenario(current_scenario, max_scenario)
+                with SwitchState(state_id):
+                    current_scenario, max_scenario = per_state_scenario_count[state_id]
+                    per_state_scenario_count[state_id] = (current_scenario + 1, max_scenario)
+                    if current_scenario == max_scenario:
+                        available_states_for_privilege.remove(state_id)
+                    do_scenario(current_scenario, max_scenario)
 
-    state_manager.set_active_state("core0_thread0")
-    available_cores = list(available_states.keys())
-    while available_cores:
-        # go over each of the cores, execute scenarios as long as there is what to execute
-        # once a certain core reach out its max scenario count, he will be removed from the list
-
-        # Iterate over a copy of the list to avoid modifying the list during iteration
-        for core in available_cores[:]:  # Create a shallow copy of the list
-            with SwitchState(core):
-                current_scenario, max_scenario = per_core_scenario_count.get(core)
-                per_core_scenario_count[core] = (current_scenario + 1, max_scenario)
-                if current_scenario == max_scenario:
-                    available_cores.remove(core)
-                do_scenario(current_scenario, max_scenario)
-
-    available_cores = list(available_states.keys())
-    for core in available_cores:
-        with SwitchState(core):
+    for state in list(available_states.keys()):
+        with SwitchState(state):
             current_state = state_manager.get_active_state()
             logger.info(f"privilege: {current_state.privilege_level} privilege_manager: {privilege_manager}")
             if current_state.privilege_level == PrivilegeLevel.RISCV.MACHINE and privilege_manager:
@@ -167,4 +203,4 @@ def do_body():
             elif current_state.privilege_level == PrivilegeLevel.RISCV.SUPERVISOR and privilege_manager:
                 logger.info("Generating trap handler for S-mode")
                 privilege_manager.gen_trap_handler(current_state.privilege_level)
-            AsmLogger.comment(f"========================= state_id {state_id} - privilege {current_state.privilege_level} - TEST BODY - end =====================")
+            AsmLogger.comment(f"========================= state_id {state} - privilege {current_state.privilege_level} - TEST BODY - end =====================")

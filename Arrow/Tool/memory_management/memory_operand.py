@@ -47,7 +47,7 @@ class Memory:
         config_manager = get_config_manager()
         state_manager = get_state_manager()
         curr_state = state_manager.get_active_state()
-        curr_page_table = curr_state.current_el_page_table
+        curr_segment_manager = curr_state.segment_manager
 
         Memory._memory_initial_seed_id += 1
         self.name = name if name is not None else f"mem{Memory._memory_initial_seed_id}"
@@ -133,7 +133,7 @@ class Memory:
                 if should_reuse and (name is None) and (self._address is None) and (self.init_value is None):
                     # reuse memory only applicable for DATA_SHARED memory, and when no explicit parameter were asked. Notice I'm checking name and not self.name for that usage
                     from Arrow.Tool.memory_management.memory_usage import get_used_memory_block
-                    self.memory_block = get_used_memory_block(curr_page_table.segment_manager, byte_size=byte_size, alignment=self.alignment)
+                    self.memory_block = get_used_memory_block(curr_segment_manager, byte_size=byte_size, alignment=self.alignment)
                     # check if such shared memory_block exist
                     if self.memory_block is not None:
                         self.reused_memory = True
