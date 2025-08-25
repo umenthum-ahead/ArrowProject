@@ -2214,7 +2214,8 @@
             "group": "control_flow",
             "description": "Unconditional jump to a target address.",
             "syntax": "C.J offset",
-            "architecture_modes": ["RV32", "RV64"]
+            "architecture_modes": ["RV32", "RV64"],
+            "random_generate": "False"
         },
         {
             "mnemonic": "c.jr",
@@ -2230,7 +2231,8 @@
             "group": "control_flow",
             "description": "Jumps to the address in the source register.",
             "syntax": "C.JR src_reg",
-            "architecture_modes": ["RV32", "RV64"]
+            "architecture_modes": ["RV32", "RV64"],
+            "random_generate": "False"
         },
         {
             "mnemonic": "c.jalr",
@@ -2246,7 +2248,8 @@
             "group": "control_flow",
             "description": "Jumps to the address in the source register and stores the address of the next instruction in register ra (x1).",
             "syntax": "C.JALR src_reg",
-            "architecture_modes": ["RV32", "RV64"]
+            "architecture_modes": ["RV32", "RV64"],
+            "random_generate": "False"
         },
         {
             "mnemonic": "c.ebreak",
@@ -2278,7 +2281,8 @@
             "group": "branch",
             "description": "Branches to the target address if the value in the register is equal to zero.",
             "syntax": "C.BEQZ src_reg, offset",
-            "architecture_modes": ["RV32", "RV64"]
+            "architecture_modes": ["RV32", "RV64"],
+            "random_generate": "False"
         },
         {
             "mnemonic": "c.bnez",
@@ -2300,7 +2304,8 @@
             "group": "branch",
             "description": "Branches to the target address if the value in the register is not equal to zero.",
             "syntax": "C.BNEZ src_reg, offset",
-            "architecture_modes": ["RV32", "RV64"]
+            "architecture_modes": ["RV32", "RV64"],
+            "random_generate": "False"
         },
         {
             "mnemonic": "c.addi4spn",
