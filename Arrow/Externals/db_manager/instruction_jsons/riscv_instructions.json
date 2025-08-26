@@ -26,6 +26,7 @@
             "group": "arithmetic",
             "description": "Adds two registers and stores the result in the destination register.",
             "syntax": "ADD dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -54,6 +55,7 @@
             "group": "arithmetic",
             "description": "Adds an immediate value to a register and stores the result in the destination register.",
             "syntax": "ADDI dest_reg, src_reg, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -82,6 +84,7 @@
             "group": "arithmetic",
             "description": "Adds a 12-bit signed immediate value to the lower 32 bits of a register, sign-extends the result, and stores it in the destination register.",
             "syntax": "ADDIW dest_reg, src_reg, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -110,6 +113,7 @@
             "group": "arithmetic",
             "description": "Adds the lower 32 bits of two registers, sign-extends the result to 64 bits, and stores it in the destination register.",
             "syntax": "ADDW dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -138,6 +142,7 @@
             "group": "logical",
             "description": "Performs a bitwise AND operation on two registers and stores the result in the destination register.",
             "syntax": "AND dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -166,6 +171,7 @@
             "group": "logical",
             "description": "Performs a bitwise AND operation between a register and an immediate value, storing the result in the destination register.",
             "syntax": "ANDI dest_reg, src_reg, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -188,6 +194,7 @@
             "group": "arithmetic",
             "description": "Adds an immediate offset to the current PC and stores the result in the destination register.",
             "syntax": "AUIPC dest_reg, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -216,6 +223,7 @@
             "group": "branch",
             "description": "Branches to the target if the registers are equal.",
             "syntax": "BEQ src_reg1, src_reg2, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -245,6 +253,7 @@
             "group": "branch",
             "description": "Branches to the target label if the value in the first register is greater than or equal to the value in the second register (signed comparison).",
             "syntax": "BGE src_reg1, src_reg2, label",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -274,6 +283,7 @@
             "group": "branch",
             "description": "Branches to the target label if the value in the first register is greater than or equal to the value in the second register (unsigned comparison).",
             "syntax": "BGEU src_reg1, src_reg2, label",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -303,6 +313,7 @@
             "group": "branch",
             "description": "Branches to the target if the first register is less than the second.",
             "syntax": "BLT src_reg1, src_reg2, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -332,6 +343,7 @@
             "group": "branch",
             "description": "Branches to the target address (offset) if the value in the first register is less than the value in the second register (unsigned comparison). The assembler resolves symbolic labels into offsets.",
             "syntax": "BLTU src_reg1, src_reg2, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -361,6 +373,7 @@
             "group": "branch",
             "description": "Branches to the target if the registers are not equal.",
             "syntax": "BNE src_reg1, src_reg2, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -390,6 +403,7 @@
             "group": "system",
             "description": "Performs a read-modify-write operation on the CSR. Clears bits in the CSR as specified by the source register and writes the previous CSR value to the destination register.",
             "syntax": "CSRRC dest_reg, csr, src_reg",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -419,6 +433,7 @@
             "group": "system",
             "description": "Performs a read-modify-write operation on the CSR. Clears bits in the CSR as specified by the immediate value and writes the previous CSR value to the destination register.",
             "syntax": "CSRRCI dest_reg, csr, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -448,6 +463,7 @@
             "group": "system",
             "description": "Performs a read-modify-write operation on the CSR. Sets bits in the CSR as specified by the source register and writes the previous CSR value to the destination register.",
             "syntax": "CSRRS dest_reg, csr, src_reg",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -477,6 +493,7 @@
             "group": "system",
             "description": "Performs a read-modify-write operation on the CSR. Sets bits in the CSR as specified by the immediate value and writes the previous CSR value to the destination register.",
             "syntax": "CSRRSI dest_reg, csr, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -506,6 +523,7 @@
             "group": "system",
             "description": "Reads the CSR and writes a new value to it.",
             "syntax": "CSRRW dest_reg, csr, src_reg",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -535,6 +553,7 @@
             "group": "system",
             "description": "Writes an immediate value directly to the CSR and writes the previous CSR value to the destination register.",
             "syntax": "CSRRWI dest_reg, csr, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -564,6 +583,7 @@
             "group": "arithmetic",
             "description": "Performs signed integer division of the first source register by the second source register and stores the quotient in the destination register. Division by zero results in an undefined value.",
             "syntax": "DIV dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -592,6 +612,7 @@
             "group": "arithmetic",
             "description": "Performs unsigned integer division of the first source register by the second source register and stores the quotient in the destination register. Division by zero results in an undefined value.",
             "syntax": "DIVU dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -620,6 +641,7 @@
             "group": "arithmetic",
             "description": "Performs unsigned integer division of the lower 32 bits of the first source register by the second source register and stores the quotient in the lower 32 bits of the destination register, with the result sign-extended to 64 bits.",
             "syntax": "DIVUW dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -648,6 +670,7 @@
             "group": "arithmetic",
             "description": "Performs signed integer division of the lower 32 bits of the first source register by the second source register and stores the quotient in the lower 32 bits of the destination register, with the result sign-extended to 64 bits.",
             "syntax": "DIVW dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -657,6 +680,7 @@
             "group": "system",
             "description": "Generates a system call to invoke services provided by the execution environment. The behavior depends on the value in the a7 register (or equivalent, depending on the calling convention).",
             "syntax": "ECALL",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -667,6 +691,7 @@
             "group": "system",
             "description": "Breakpoint for debugging.",
             "syntax": "EBREAK",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -690,6 +715,7 @@
             "group": "memory",
             "description": "Ensures ordering of memory operations as specified by the pred and succ fields. Pred defines prior memory operations, and succ defines subsequent memory operations affected by the fence.",
             "syntax": "FENCE pred, succ",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -699,6 +725,7 @@
             "group": "memory",
             "description": "Ensures ordering of memory operations in Total Store Order.",
             "syntax": "FENCE.TSO",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -708,6 +735,7 @@
             "group": "memory",
             "description": "Flushes the instruction cache to ensure that all subsequent instruction fetches reflect memory updates made by prior stores.",
             "syntax": "FENCE.I",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -730,6 +758,7 @@
             "group": "control_flow",
             "description": "Jumps to the address specified by the offset and stores the address of the next instruction (PC + 4) in the destination register.",
             "syntax": "JAL dest_reg, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -759,6 +788,7 @@
             "group": "control_flow",
             "description": "Jumps to the address computed by adding the offset to the value in the base register, and stores the address of the next instruction (PC + 4) in the destination register. The least significant bit of the computed address is cleared.",
             "syntax": "JALR dest_reg, src_reg, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -782,6 +812,7 @@
             "group": "load",
             "description": "Loads an 8-bit byte from memory at the address computed by adding the offset to the value in the base register, sign-extends it, and stores it in the destination register.",
             "syntax": "LB dest_reg, offset(base_reg)",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -804,6 +835,7 @@
             "group": "load",
             "description": "Loads a byte from memory at the address computed by adding the offset to the value in the base register, zero-extends it, and stores it in the destination register.",
             "syntax": "LBU dest_reg, offset(base_reg)",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -826,6 +858,7 @@
             "group": "load",
             "description": "Loads a double word (64 bits) from memory at the address computed by adding the offset to the value in the base register and stores it in the destination register.",
             "syntax": "LD dest_reg, offset(base_reg)",
+            "extension": ["g"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -848,6 +881,7 @@
             "group": "load",
             "description": "Loads a half word (16 bits) from memory at the address computed by adding the offset to the value in the base register, sign-extends it, and stores it in the destination register.",
             "syntax": "LH dest_reg, offset(base_reg)",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -870,6 +904,7 @@
             "group": "load",
             "description": "Loads a half word (16 bits) from memory at the address computed by adding the offset to the value in the base register, zero-extends it, and stores it in the destination register.",
             "syntax": "LHU dest_reg, offset(base_reg)",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -892,6 +927,7 @@
             "group": "arithmetic",
             "description": "Loads a 20-bit immediate into the upper 20 bits of the destination register, with the lower 12 bits set to zero.",
             "syntax": "LUI dest_reg, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -914,6 +950,7 @@
             "group": "load",
             "description": "Loads a word (32 bits) from memory at the address computed by adding the offset to the value in the base register, sign-extends it, and stores it in the destination register.",
             "syntax": "LW dest_reg, offset(base_reg)",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -936,6 +973,7 @@
             "group": "load",
             "description": "Loads a word (32 bits) from memory at the address computed by adding the offset to the value in the base register, zero-extends it, and stores it in the destination register.",
             "syntax": "LWU dest_reg, offset(base_reg)",
+            "extension": ["g"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -964,6 +1002,7 @@
             "group": "arithmetic",
             "description": "Multiplies the values in the two source registers and stores the lower bits of the result in the destination register.",
             "syntax": "MUL dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -992,6 +1031,7 @@
             "group": "arithmetic",
             "description": "Multiplies the values in the two source registers as signed integers and stores the upper bits of the result in the destination register.",
             "syntax": "MULH dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1020,6 +1060,7 @@
             "group": "arithmetic",
             "description": "Multiplies the first source register as a signed integer and the second source register as an unsigned integer. The upper bits of the result are stored in the destination register.",
             "syntax": "MULHSU dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1048,6 +1089,7 @@
             "group": "arithmetic",
             "description": "Multiplies the values in the two source registers as unsigned integers and stores the upper bits of the result in the destination register.",
             "syntax": "MULHU dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1076,6 +1118,7 @@
             "group": "arithmetic",
             "description": "Multiplies the lower 32 bits of the two source registers as signed integers and stores the lower 32 bits of the result in the destination register, sign-extended to 64 bits.",
             "syntax": "MULW dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -1104,6 +1147,7 @@
             "group": "logical",
             "description": "Performs a bitwise OR operation on the values in the two source registers and stores the result in the destination register.",
             "syntax": "OR dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1132,6 +1176,7 @@
             "group": "logical",
             "description": "Performs a bitwise OR operation between the value in the source register and the sign-extended immediate value, storing the result in the destination register.",
             "syntax": "ORI dest_reg, src_reg, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1160,6 +1205,7 @@
             "group": "arithmetic",
             "description": "Computes the remainder of the division of the value in the first source register by the value in the second source register (signed). Stores the result in the destination register.",
             "syntax": "REM dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1188,6 +1234,7 @@
             "group": "arithmetic",
             "description": "Computes the remainder of the division of the value in the first source register by the value in the second source register (unsigned). Stores the result in the destination register.",
             "syntax": "REMU dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1216,6 +1263,7 @@
             "group": "arithmetic",
             "description": "Computes the remainder of the division of the lower 32 bits of the first source register by the lower 32 bits of the second source register (unsigned). Stores the result in the destination register, zero-extended to 64 bits.",
             "syntax": "REMUW dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -1244,6 +1292,7 @@
             "group": "arithmetic",
             "description": "Computes the remainder of the division of the lower 32 bits of the first source register by the lower 32 bits of the second source register (signed). Stores the result in the destination register, sign-extended to 64 bits.",
             "syntax": "REMW dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -1266,6 +1315,7 @@
             "group": "store",
             "description": "Stores the least significant byte (8 bits) of the value in the source register into the memory address computed by adding the offset to the base register.",
             "syntax": "SB src_reg, offset(base_reg)",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1288,6 +1338,7 @@
             "group": "store",
             "description": "Stores the least significant double word (64 bits) of the value in the source register into the memory address computed by adding the offset to the base register.",
             "syntax": "SD src_reg, offset(base_reg)",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1310,6 +1361,7 @@
             "group": "store",
             "description": "Stores the least significant half word (16 bits) of the value in the source register into the memory address computed by adding the offset to the base register.",
             "syntax": "SH src_reg, offset(base_reg)",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1332,6 +1384,7 @@
             "group": "store",
             "description": "Stores the least significant word (32 bits) of the value in the source register into the memory address computed by adding the offset to the base register.",
             "syntax": "SW src_reg, offset(base_reg)",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1360,6 +1413,7 @@
             "group": "shift",
             "description": "Performs a logical left shift of the value in the first source register by the number of bits specified in the lower 5 bits of the second source register and stores the result in the destination register.",
             "syntax": "SLL dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1388,6 +1442,7 @@
             "group": "shift",
             "description": "Performs a logical left shift of the value in the source register by the immediate value and stores the result in the destination register.",
             "syntax": "SLLI dest_reg, src_reg, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1416,6 +1471,7 @@
             "group": "shift",
             "description": "Performs a logical left shift of the lower 32 bits of the value in the source register by the immediate value and stores the result in the destination register, sign-extended to 64 bits.",
             "syntax": "SLLIW dest_reg, src_reg, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -1444,6 +1500,7 @@
             "group": "shift",
             "description": "Performs a logical left shift of the lower 32 bits of the value in the first source register by the number of bits specified in the lower 5 bits of the second source register and stores the result in the destination register, sign-extended to 64 bits.",
             "syntax": "SLLW dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -1472,6 +1529,7 @@
             "group": "comparison",
             "description": "Sets the destination register to 1 if the value in the first source register is less than the value in the second source register (signed). Otherwise, sets it to 0.",
             "syntax": "SLT dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1500,6 +1558,7 @@
             "group": "comparison",
             "description": "Sets the destination register to 1 if the value in the source register is less than the immediate value (signed). Otherwise, sets it to 0.",
             "syntax": "SLTI dest_reg, src_reg, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1528,6 +1587,7 @@
             "group": "comparison",
             "description": "Sets the destination register to 1 if the value in the source register is less than the immediate value (signed). Otherwise, sets it to 0.",
             "syntax": "SLTIU dest_reg, src_reg, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1556,6 +1616,7 @@
             "group": "comparison",
             "description": "Sets the destination register to 1 if the value in the first source register is less than the value in the second source register (unsigned). Otherwise, sets it to 0.",
             "syntax": "SLTU dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1584,6 +1645,7 @@
             "group": "shift",
             "description": "Performs an arithmetic right shift of the value in the first source register by the number of bits specified in the lower 5 bits of the second source register and stores the result in the destination register.",
             "syntax": "SRA dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1612,6 +1674,7 @@
             "group": "shift",
             "description": "Performs an arithmetic right shift of the value in the source register by the immediate value and stores the result in the destination register.",
             "syntax": "SRAI dest_reg, src_reg, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1640,6 +1703,7 @@
             "group": "shift",
             "description": "Performs an arithmetic right shift of the lower 32 bits of the value in the source register by the immediate value and stores the result in the destination register, sign-extended to 64 bits.",
             "syntax": "SRAIW dest_reg, src_reg, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -1668,6 +1732,7 @@
             "group": "shift",
             "description": "Performs an arithmetic right shift of the lower 32 bits of the value in the first source register by the number of bits specified in the lower 5 bits of the second source register and stores the result in the destination register, sign-extended to 64 bits.",
             "syntax": "SRAW dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -1696,6 +1761,7 @@
             "group": "shift",
             "description": "Performs a logical right shift of the value in the first source register by the number of bits specified in the lower 5 bits of the second source register and stores the result in the destination register.",
             "syntax": "SRL dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1724,6 +1790,7 @@
             "group": "shift",
             "description": "Performs a logical right shift of the value in the source register by the immediate value and stores the result in the destination register.",
             "syntax": "SRLI dest_reg, src_reg, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1752,6 +1819,7 @@
             "group": "shift",
             "description": "Performs a logical right shift of the lower 32 bits of the value in the source register by the immediate value and stores the result in the destination register.",
             "syntax": "SRLIW dest_reg, src_reg, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -1780,6 +1848,7 @@
             "group": "shift",
             "description": "Performs a logical right shift of the lower 32 bits of the value in the first source register by the number of bits specified in the lower 5 bits of the second source register and stores the result in the destination register.",
             "syntax": "SRLW dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -1808,6 +1877,7 @@
             "group": "arithmetic",
             "description": "Subtracts the value in the second source register from the value in the first source register and stores the result in the destination register.",
             "syntax": "SUB dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1836,6 +1906,7 @@
             "group": "arithmetic",
             "description": "Subtracts the value in the second source register from the value in the first source register, both treated as 32-bit signed integers, and stores the result in the destination register (32-bit).",
             "syntax": "SUBW dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -1845,6 +1916,7 @@
             "group": "system",
             "description": "Returns from user-level interrupt handler and restores the user-level program counter and status.",
             "syntax": "URET",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -1855,6 +1927,7 @@
             "group": "system",
             "description": "Waits for an interrupt to occur. It puts the CPU in a low-power state until an interrupt is received.",
             "syntax": "WFI",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -1884,6 +1957,7 @@
             "group": "logical",
             "description": "Performs a bitwise XOR operation between the values in the two source registers and stores the result in the destination register.",
             "syntax": "XOR dest_reg, src_reg1, src_reg2",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -1912,6 +1986,7 @@
             "group": "logical",
             "description": "Performs a bitwise XOR operation between the value in the source register and the immediate value, and stores the result in the destination register.",
             "syntax": "XORI dest_reg, src_reg, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3044,6 +3119,7 @@
             "group": "load",
             "description": "Loads a 32-bit word from the stack, sign-extends it to the register width, and writes it to a register.",
             "syntax": "C.LWSP dest_reg, offset(sp)",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3066,6 +3142,7 @@
             "group": "load",
             "description": "Loads a 64-bit doubleword from the stack into a register.",
             "syntax": "C.LDSP dest_reg, offset(sp)",
+            "extension": ["c"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -3088,6 +3165,7 @@
             "group": "arithmetic",
             "description": "Adds a signed immediate to a register and writes the result to the same register.",
             "syntax": "C.ADDI dest_reg, immediate",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3110,6 +3188,7 @@
             "group": "arithmetic",
             "description": "Adds a signed immediate to a register, truncates the result to 32 bits, sign-extends it to the register width, and writes it to the same register.",
             "syntax": "C.ADDIW dest_reg, immediate",
+            "extension": ["c"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -3132,6 +3211,7 @@
             "group": "arithmetic",
             "description": "Loads a sign-extended immediate into a register.",
             "syntax": "C.LI dest_reg, immediate",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3154,7 +3234,9 @@
             "group": "arithmetic",
             "description": "Adds a non-zero multiple of 16 to the stack pointer.",
             "syntax": "C.ADDI16SP sp, immediate",
-            "architecture_modes": ["RV32", "RV64"]
+            "extension": ["c"],
+            "architecture_modes": ["RV32", "RV64"],
+            "random_generate": "False"
         },
         {
             "mnemonic": "c.lui",
@@ -3176,6 +3258,7 @@
             "group": "arithmetic",
             "description": "Loads a 6-bit sign-extended immediate into the bits [XLEN:12] of a register. Clears the lower 12 bits. We however specify the immediate without the shift for this. Our compiler also doesn't like anything beyond [0x1, 0x1f] although the actual range should be [-0x20, 0x1f].",
             "syntax": "C.LUI dest_reg, immediate",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3198,6 +3281,7 @@
             "group": "store",
             "description": "Stores a 32-bit word from a register to the stack.",
             "syntax": "C.SWSP src_reg, offset(sp)",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3220,6 +3304,7 @@
             "group": "store",
             "description": "Stores a 64-bit doubleword from a register to the stack.",
             "syntax": "C.SDSP src_reg, offset(sp)",
+            "extension": ["c"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -3242,6 +3327,7 @@
             "group": "load",
             "description": "Loads a 32-bit word from memory. Offset is scaled by 4 before adding to basecreg.",
             "syntax": "C.LW dest_reg, offset(basecreg)",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3264,6 +3350,7 @@
             "group": "load",
             "description": "Loads a 64-bit doubleword from memory into a register.",
             "syntax": "C.LD dest_reg, offset(basecreg)",
+            "extension": ["c"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -3286,6 +3373,7 @@
             "group": "store",
             "description": "Stores a 32-bit word from a register to memory.",
             "syntax": "C.SW src_reg, offset(basecreg)",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3308,6 +3396,7 @@
             "group": "store",
             "description": "Stores a 64-bit doubleword from a register to memory.",
             "syntax": "C.SD src_reg, offset(basecreg)",
+            "extension": ["c"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -3324,6 +3413,7 @@
             "group": "control_flow",
             "description": "Unconditional jump to a target address.",
             "syntax": "C.J offset",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -3341,6 +3431,7 @@
             "group": "control_flow",
             "description": "Jumps to the address in the source register.",
             "syntax": "C.JR src_reg",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -3358,6 +3449,7 @@
             "group": "control_flow",
             "description": "Jumps to the address in the source register and stores the address of the next instruction in register ra (x1).",
             "syntax": "C.JALR src_reg",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -3368,6 +3460,7 @@
             "group": "system",
             "description": "Breakpoint for debugging.",
             "syntax": "C.EBREAK",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -3391,6 +3484,7 @@
             "group": "branch",
             "description": "Branches to the target address if the value in the register is equal to zero.",
             "syntax": "C.BEQZ src_reg, offset",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -3414,6 +3508,7 @@
             "group": "branch",
             "description": "Branches to the target address if the value in the register is not equal to zero.",
             "syntax": "C.BNEZ src_reg, offset",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -3443,7 +3538,9 @@
             "group": "arithmetic",
             "description": "Adds a non-zero 8-bit unsigned immediate (scaled by 4) to the stack pointer (sp) and writes the result to dest_reg.",
             "syntax": "C.ADDI4SPN dest_reg, sp, immediate",
-            "architecture_modes": ["RV32", "RV64"]
+            "extension": ["c"],
+            "architecture_modes": ["RV32", "RV64"],
+            "random_generate": "False"
         },
         {
             "mnemonic": "c.slli",
@@ -3465,6 +3562,7 @@
             "group": "shift",
             "description": "Performs a logical left shift of a register by an immediate amount and writes the result to the same register.",
             "syntax": "C.SLLI dest_reg, immediate",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3487,6 +3585,7 @@
             "group": "shift",
             "description": "Performs a logical right shift of a register by an immediate amount and writes the result to the same register.",
             "syntax": "C.SRLI dest_reg, immediate",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3509,6 +3608,7 @@
             "group": "shift",
             "description": "Performs an arithmetic right shift of a register by an immediate amount and writes the result to the same register.",
             "syntax": "C.SRAI dest_reg, immediate",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3531,6 +3631,7 @@
             "group": "logical",
             "description": "Performs a bitwise AND operation between a register and an immediate value and writes the result to the same register.",
             "syntax": "C.ANDI dest_reg, immediate",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3553,6 +3654,7 @@
             "group": "arithmetic",
             "description": "Copies the value from the source register to the destination register.",
             "syntax": "C.MV dest_reg, src_reg",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3575,6 +3677,7 @@
             "group": "arithmetic",
             "description": "Adds two registers and writes the result to the first register.",
             "syntax": "C.ADD dest_reg, src_reg",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3597,6 +3700,7 @@
             "group": "arithmetic",
             "description": "Subtracts one register from another and writes the result to the first register.",
             "syntax": "C.SUB dest_reg, src_reg",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3619,6 +3723,7 @@
             "group": "logical",
             "description": "Performs a bitwise XOR operation between two registers and writes the result to the first register.",
             "syntax": "C.XOR dest_reg, src_reg",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3641,6 +3746,7 @@
             "group": "logical",
             "description": "Performs a bitwise OR operation between two registers and writes the result to the first register.",
             "syntax": "C.OR dest_reg, src_reg",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3663,6 +3769,7 @@
             "group": "logical",
             "description": "Performs a bitwise AND operation between two registers and writes the result to the first register.",
             "syntax": "C.AND dest_reg, src_reg",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3685,6 +3792,7 @@
             "group": "arithmetic",
             "description": "Adds two registers, truncates the result to 32 bits, sign-extends it to the register width, and writes it to the first register.",
             "syntax": "C.ADDW dest_reg, src_reg",
+            "extension": ["c"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -3707,6 +3815,7 @@
             "group": "arithmetic",
             "description": "Subtracts one register from another, truncates the result to 32 bits, sign-extends it to the register width, and writes it to the first register.",
             "syntax": "C.SUBW dest_reg, src_reg",
+            "extension": ["c"],
             "architecture_modes": ["RV64"]
         }
     ],
@@ -3725,6 +3834,7 @@
             "group": "control_flow",
             "description": "Unconditional branch to the target offset.",
             "syntax": "B offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "expanded": [
                 {
@@ -3754,6 +3864,7 @@
             "group": "branch",
             "description": "Branches to the target offset if the value in the source register is equal to zero.",
             "syntax": "BEQZ src_reg, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "expanded": [
                 {
@@ -3783,6 +3894,7 @@
             "group": "branch",
             "description": "Branches to the target offset if the value in the source register is greater than or equal to zero.",
             "syntax": "BGEZ src_reg, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "expanded": [
                 {
@@ -3818,6 +3930,7 @@
             "group": "branch",
             "description": "Branches to the target offset if the value in the first source register is greater than the value in the second source register.",
             "syntax": "BGT src_reg1, src_reg2, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "expanded": [
                 {
@@ -3853,6 +3966,7 @@
             "group": "branch",
             "description": "Branches to the target offset if the value in the first source register is greater than the value in the second source register (unsigned comparison).",
             "syntax": "BGTU src_reg1, src_reg2, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "expanded": [
                 {
@@ -3882,6 +3996,7 @@
             "group": "branch",
             "description": "Branches to the target offset if the value in the source register is greater than zero.",
             "syntax": "BGTZ src_reg, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "expanded": [
                 {
@@ -3917,6 +4032,7 @@
             "group": "branch",
             "description": "Branches to the target offset if the value in the first source register is less than or equal to the value in the second source register.",
             "syntax": "BLE src_reg1, src_reg2, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "expanded": [
                 {
@@ -3952,6 +4068,7 @@
             "group": "branch",
             "description": "Branches to the target offset if the value in the first source register is less than or equal to the value in the second source register (unsigned comparison).",
             "syntax": "BLEU src_reg1, src_reg2, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "expanded": [
                 {
@@ -3981,6 +4098,7 @@
             "group": "branch",
             "description": "Branches to the target offset if the value in the source register is less than or equal to zero.",
             "syntax": "BLEZ src_reg, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "expanded": [
                 {
@@ -4010,6 +4128,7 @@
             "group": "branch",
             "description": "Branches to the target offset if the value in the source register is less than zero.",
             "syntax": "BLTZ src_reg, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "expanded": [
                 {
@@ -4039,6 +4158,7 @@
             "group": "branch",
             "description": "Branches to the target offset if the value in the source register is not equal to zero.",
             "syntax": "BNEZ src_reg, offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "expanded": [
                 {
@@ -4062,6 +4182,7 @@
             "group": "system",
             "description": "Performs an unconditional jump to the target address and stores the return address in register x1 (ra).",
             "syntax": "CALL offset",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "expanded": [
                 {
@@ -4091,6 +4212,7 @@
             "group": "system",
             "description": "Clears bits in the CSR (Control and Status Register) specified by src_reg.",
             "syntax": "CSRC csr, src_reg",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -4114,6 +4236,7 @@
             "group": "system",
             "description": "Clears bits in the CSR specified by an immediate value.",
             "syntax": "CSRci csr, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -4137,6 +4260,7 @@
             "group": "system",
             "description": "Reads the value of the specified CSR into a destination register.",
             "syntax": "CSRR dest_reg, csr",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -4160,6 +4284,7 @@
             "group": "system",
             "description": "Sets bits in the CSR specified by src_reg.",
             "syntax": "CSRS csr, src_reg",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -4183,6 +4308,7 @@
             "group": "system",
             "description": "Sets bits in the CSR specified by an immediate value.",
             "syntax": "CSRSI csr, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -4206,6 +4332,7 @@
             "group": "system",
             "description": "Writes the value in src_reg to the specified CSR.",
             "syntax": "CSRW csr, src_reg",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -4229,6 +4356,7 @@
             "group": "system",
             "description": "Writes an immediate value to the specified CSR.",
             "syntax": "CSRWI csr, immediate",
+            "extension": ["g"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -4239,6 +4367,7 @@
             "group": "arithmetic",
             "description": "No operation, does nothing.",
             "syntax": "C.NOP",
+            "extension": ["c"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         }
