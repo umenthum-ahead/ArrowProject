@@ -1915,6 +1915,1116 @@
             "architecture_modes": ["RV32", "RV64"]
         },
         {
+            "mnemonic": "add.uw",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "32_bits"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "address_generation",
+            "description": "Zero-extends the lower 32 bits of src_reg1 and adds it to src_reg2, storing the result in dest_reg.",
+            "syntax": "ADD.UW dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "sh1add",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "address_generation",
+            "description": "Shifts src_reg1 left by 1 bit and adds it to src_reg2, storing the result in dest_reg.",
+            "syntax": "SH1ADD dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "sh1add.uw",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "32_bits"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "address_generation",
+            "description": "Zero-extends the lower 32 bits of src_reg1, shifts left by 1 bit, and adds it to src_reg2, storing the result in dest_reg.",
+            "syntax": "SH1ADD.UW dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "sh2add",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "address_generation",
+            "description": "Shifts src_reg1 left by 2 bits and adds it to src_reg2, storing the result in dest_reg.",
+            "syntax": "SH2ADD dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "sh2add.uw",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "32_bits"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "address_generation",
+            "description": "Zero-extends the lower 32 bits of src_reg1, shifts left by 2 bits, and adds it to src_reg2, storing the result in dest_reg.",
+            "syntax": "SH2ADD.UW dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "sh3add",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "address_generation",
+            "description": "Shifts src_reg1 left by 3 bits and adds it to src_reg2, storing the result in dest_reg.",
+            "syntax": "SH3ADD dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "sh3add.uw",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "32_bits"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "address_generation",
+            "description": "Zero-extends the lower 32 bits of src_reg1, shifts left by 3 bits, and adds it to src_reg2, storing the result in dest_reg.",
+            "syntax": "SH3ADD.UW dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "slli.uw",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "32_bits"
+                },
+                {
+                    "name": "immediate",
+                    "type": "imm",
+                    "role": "src",
+                    "size": "6_bits_unsigned"
+                }
+            ],
+            "type": "I",
+            "group": "address_generation",
+            "description": "Zero-extends the lower 32 bits of src_reg, shifts left by immediate amount, and stores the result in dest_reg.",
+            "syntax": "SLLI.UW dest_reg, src_reg, immediate",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "andn",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Performs bitwise AND of src_reg1 with the bitwise NOT of src_reg2, storing the result in dest_reg.",
+            "syntax": "ANDN dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "orn",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Performs bitwise OR of src_reg1 with the bitwise NOT of src_reg2, storing the result in dest_reg.",
+            "syntax": "ORN dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "xnor",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Performs bitwise XOR of src_reg1 and src_reg2, then bitwise NOT of the result, storing in dest_reg.",
+            "syntax": "XNOR dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "clz",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Counts the number of leading zero bits in src_reg and stores the count in dest_reg.",
+            "syntax": "CLZ dest_reg, src_reg",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "clzw",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "32_bits"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Counts the number of leading zero bits in the lower 32 bits of src_reg and stores the count in dest_reg.",
+            "syntax": "CLZW dest_reg, src_reg",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "ctz",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Counts the number of trailing zero bits in src_reg and stores the count in dest_reg.",
+            "syntax": "CTZ dest_reg, src_reg",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "ctzw",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "32_bits"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Counts the number of trailing zero bits in the lower 32 bits of src_reg and stores the count in dest_reg.",
+            "syntax": "CTZW dest_reg, src_reg",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "cpop",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Counts the number of set bits (population count) in src_reg and stores the count in dest_reg.",
+            "syntax": "CPOP dest_reg, src_reg",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "cpopw",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "32_bits"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Counts the number of set bits in the lower 32 bits of src_reg and stores the count in dest_reg.",
+            "syntax": "CPOPW dest_reg, src_reg",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "max",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "arithmetic",
+            "description": "Compares src_reg1 and src_reg2 as signed integers and stores the maximum value in dest_reg.",
+            "syntax": "MAX dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "maxu",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "arithmetic",
+            "description": "Compares src_reg1 and src_reg2 as unsigned integers and stores the maximum value in dest_reg.",
+            "syntax": "MAXU dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "min",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "arithmetic",
+            "description": "Compares src_reg1 and src_reg2 as signed integers and stores the minimum value in dest_reg.",
+            "syntax": "MIN dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "minu",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "arithmetic",
+            "description": "Compares src_reg1 and src_reg2 as unsigned integers and stores the minimum value in dest_reg.",
+            "syntax": "MINU dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "sext.b",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "8_bits"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Sign-extends the lower 8 bits of src_reg to the full register width and stores in dest_reg.",
+            "syntax": "SEXT.B dest_reg, src_reg",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "sext.h",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "16_bits"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Sign-extends the lower 16 bits of src_reg to the full register width and stores in dest_reg.",
+            "syntax": "SEXT.H dest_reg, src_reg",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "zext.h",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "16_bits"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Zero-extends the lower 16 bits of src_reg to the full register width and stores in dest_reg.",
+            "syntax": "ZEXT.H dest_reg, src_reg",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "rol",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "6_bits"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Rotates src_reg1 left by the amount specified in the lower 6 bits of src_reg2 and stores in dest_reg.",
+            "syntax": "ROL dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "rolw",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "32_bits"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "5_bits"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Rotates the lower 32 bits of src_reg1 left by the amount specified in the lower 5 bits of src_reg2, sign-extends the result, and stores in dest_reg.",
+            "syntax": "ROLW dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "ror",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "6_bits"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Rotates src_reg1 right by the amount specified in the lower 6 bits of src_reg2 and stores in dest_reg.",
+            "syntax": "ROR dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "rori",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "immediate",
+                    "type": "imm",
+                    "role": "src",
+                    "size": "6_bits_unsigned"
+                }
+            ],
+            "type": "I",
+            "group": "logical",
+            "description": "Rotates src_reg right by the immediate amount and stores in dest_reg.",
+            "syntax": "RORI dest_reg, src_reg, immediate",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "roriw",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "32_bits"
+                },
+                {
+                    "name": "immediate",
+                    "type": "imm",
+                    "role": "src",
+                    "size": "5_bits_unsigned"
+                }
+            ],
+            "type": "I",
+            "group": "logical",
+            "description": "Rotates the lower 32 bits of src_reg right by the immediate amount, sign-extends the result, and stores in dest_reg.",
+            "syntax": "RORIW dest_reg, src_reg, immediate",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "rorw",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "32_bits"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "5_bits"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Rotates the lower 32 bits of src_reg1 right by the amount specified in the lower 5 bits of src_reg2, sign-extends the result, and stores in dest_reg.",
+            "syntax": "RORW dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "rev8",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Reverses the order of bytes in src_reg and stores the result in dest_reg.",
+            "syntax": "REV8 dest_reg, src_reg",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "orc.b",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Sets each byte to 0xFF if any bit in that byte is set, otherwise sets to 0x00, and stores in dest_reg.",
+            "syntax": "ORC.B dest_reg, src_reg",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "bclr",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "6_bits"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Clears the bit at position specified by the lower 6 bits of src_reg2 in src_reg1 and stores in dest_reg.",
+            "syntax": "BCLR dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "bclri",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "immediate",
+                    "type": "imm",
+                    "role": "src",
+                    "size": "6_bits_unsigned"
+                }
+            ],
+            "type": "I",
+            "group": "logical",
+            "description": "Clears the bit at position specified by the immediate in src_reg and stores in dest_reg.",
+            "syntax": "BCLRI dest_reg, src_reg, immediate",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "bext",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "6_bits"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Extracts the bit at position specified by the lower 6 bits of src_reg2 from src_reg1 and stores in dest_reg.",
+            "syntax": "BEXT dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "bexti",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "immediate",
+                    "type": "imm",
+                    "role": "src",
+                    "size": "6_bits_unsigned"
+                }
+            ],
+            "type": "I",
+            "group": "logical",
+            "description": "Extracts the bit at position specified by the immediate from src_reg and stores in dest_reg.",
+            "syntax": "BEXTI dest_reg, src_reg, immediate",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "binv",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "6_bits"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Inverts the bit at position specified by the lower 6 bits of src_reg2 in src_reg1 and stores in dest_reg.",
+            "syntax": "BINV dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "binvi",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "immediate",
+                    "type": "imm",
+                    "role": "src",
+                    "size": "6_bits_unsigned"
+                }
+            ],
+            "type": "I",
+            "group": "logical",
+            "description": "Inverts the bit at position specified by the immediate in src_reg and stores in dest_reg.",
+            "syntax": "BINVI dest_reg, src_reg, immediate",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "bset",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "6_bits"
+                }
+            ],
+            "type": "R",
+            "group": "logical",
+            "description": "Sets the bit at position specified by the lower 6 bits of src_reg2 in src_reg1 and stores in dest_reg.",
+            "syntax": "BSET dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "bseti",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "immediate",
+                    "type": "imm",
+                    "role": "src",
+                    "size": "6_bits_unsigned"
+                }
+            ],
+            "type": "I",
+            "group": "logical",
+            "description": "Sets the bit at position specified by the immediate in src_reg and stores in dest_reg.",
+            "syntax": "BSETI dest_reg, src_reg, immediate",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "czero.eqz",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "conditional",
+            "description": "If src_reg2 is zero, stores zero in dest_reg; otherwise stores src_reg1 in dest_reg.",
+            "syntax": "CZERO.EQZ dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "czero.nez",
+            "operands": [
+                {
+                    "name": "dest_reg",
+                    "type": "gpr",
+                    "role": "dest",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg1",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "src_reg2",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                }
+            ],
+            "type": "R",
+            "group": "conditional",
+            "description": "If src_reg2 is not zero, stores zero in dest_reg; otherwise stores src_reg1 in dest_reg.",
+            "syntax": "CZERO.NEZ dest_reg, src_reg1, src_reg2",
+            "architecture_modes": ["RV64"]
+        },
+        {
             "mnemonic": "c.lwsp",
             "operands": [
                 {
