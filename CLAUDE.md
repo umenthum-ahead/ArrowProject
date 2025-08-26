@@ -33,15 +33,38 @@ This is the nue-core project containing Arrow, an architecture-agnostic random i
 - Always use `RegisterManager.get_and_reserve()` / `RegisterManager.free()` pairs
 
 ## Testing
-- **Primary test command**: `ahc_regress -l ../../val/common/testlists/riscv_dv_whisper_doa.yaml --dut whisper --test arrow_direct --keep`
-- **Build prerequisites** (usually not needed): 
+
+### Arrow Development Agent
+- **Specialized Agent**: Use the Arrow Development Agent in `arrow_agent/` for comprehensive Arrow testing support
+- **Agent Usage**: `python -m arrow_agent --smoke-test` for full smoke test suite
+- **Environment Validation**: `python -m arrow_agent --validate` to check prerequisites
+
+### Test Execution
+- **Smoke test command**: `ahc_regress --dut whisper --keep -l val/common/testlists/arrow_smoke_examples.yaml --local --no_compress`
+- **Specific test**: Add `--test <test_name>` (e.g., `--test arrow_direct`)
+- **Available smoke tests**: arrow_random, arrow_direct, arrow_branch, arrow_cfg, arrow_mode_switch
+- **Test iterations**: Use 1 for smoke tests, 5-10 for full regression testing
+
+### Prerequisites
+- **Virtual environment**: Must be activated (`$GIT_ROOT/.venv`)
+- **Whisper simulator**: Required at `$GIT_ROOT/cores/nue-core/build/releases/whisper/whisper`
+- **Build if needed** (usually not required):
   ```bash
-  cmake $REPO_ROOT -B $CORE_ROOT/build
-  cmake --build $CORE_ROOT/build --target download_whisper
+  cmake $GIT_ROOT --fresh -B $GIT_ROOT/cores/nue-core/build
+  cmake --build $GIT_ROOT/cores/nue-core/build --target download_whisper
   ```
-  Skip if `$CORE_ROOT/build/releases/whisper/whisper` already exists (usually the case)
-- **For new test templates**: Modify the test list YAML file and use `--test <new_entry_name>` to specify the new test entry
-- Test templates are in `../../val/common/tests/arrow/`
+
+### Test Results
+- **Result location**: `$GIT_ROOT/cores/nue-core/regression/nue_whisper_cfg/small/`
+- **Status reports**: Check `report.yaml` files for PASS/FAIL status
+- **Execution logs**: `ahc_exec.log` for main logs, `arrow/debug.log` for Arrow-specific output
+- **Generated assembly**: `arrow/*.s` files in test directories
+
+### Template Development
+- **Template location**: `../../val/common/tests/arrow/`
+- **Reference templates**: `direct_template.py`, `random_template.py`, `branch_template.py`, `cfg_template.py`, `msu_template.py`
+- **For new templates**: Use Arrow Agent's template creation features or modify existing templates
+- **Test list updates**: Modify YAML files in `val/common/testlists/` to add new test entries
 
 ## File Organization
 - Never create new files without explicit need
@@ -79,9 +102,61 @@ This is the nue-core project containing Arrow, an architecture-agnostic random i
 - **x86/ARM**: Maintain existing functionality, provide meaningful errors for unsupported RISC-V features
 - Use external tools like `pagegen` for low-level memory management
 
+## Arrow Development Agent
+The project includes a specialized Arrow Development Agent located in `arrow_agent/` directory. This agent provides:
+
+### Key Features
+- **Test Execution**: Automated smoke test and specific test execution
+- **Result Analysis**: Comprehensive test result parsing and failure analysis
+- **Template Development**: Template creation, analysis, and recommendations
+- **Environment Validation**: Prerequisite checking and setup guidance
+- **Multi-Architecture Support**: x86, ARM, and RISC-V development assistance
+
+### Usage Examples
+```python
+from arrow_agent import ArrowAgent
+
+# Initialize agent
+agent = ArrowAgent()
+
+# Validate environment
+is_valid, errors = agent.validate_environment()
+
+# Run smoke tests
+results = agent.run_smoke_tests()
+
+# Create new template
+agent.create_new_template("my_template", reference_template="direct_template.py")
+
+# Get development guidance
+guidance = agent.get_development_guidance("template_creation")
+```
+
+### Command Line Interface
+```bash
+# Validate environment
+python -m arrow_agent --validate
+
+# Run smoke tests
+python -m arrow_agent --smoke-test
+
+# Run specific test
+python -m arrow_agent --test arrow_direct
+
+# Show status
+python -m arrow_agent --status
+```
+
+### Integration with Claude Code
+The agent is designed for use with Claude Code's Task tool:
+- **Agent Type**: "arrow-dev"
+- **Capabilities**: Test execution, analysis, template development, debugging support
+- **Isolation**: All agent files contained in `arrow_agent/` directory to avoid repo conflicts
+
 ## Key Files to Understand
 - `Arrow/main.py` - Entry point
 - `Arrow/Tool/generation_management/generate*.py` - Architecture-specific generation
 - `Arrow/Utils/configuration_management/` - Configuration and knobs
 - `Arrow/Tool/memory_management/memory_manager.py` - Memory allocation
 - `Arrow/Tool/register_management/register_manager.py` - Register management
+- `arrow_agent/` - Arrow Development Agent (isolated directory)
