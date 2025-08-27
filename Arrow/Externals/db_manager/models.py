@@ -10,14 +10,14 @@ File: models.py
 
 Description:
 This file defines the data models for the SQLite database using the `Peewee` ORM.
-The models represent the structure of the tables in the `instructions.db` database, 
+The models represent the structure of the tables in the `instructions.db` database,
 allowing the application to interact with the database using Python objects rather than raw SQL.
 
 Models:
-- `Instruction`: Represents a single instruction in the database, with fields for 
+- `Instruction`: Represents a single instruction in the database, with fields for
   mnemonic, operands, operand_size, type, group, description, architecture_modes, and syntax.
-  
-  architecture_modes differentiate between "RV32" and "RV64" 
+
+  architecture_modes differentiate between "RV32" and "RV64"
 
 Usage:
 Import these models into other scripts to interact with the database:
@@ -89,7 +89,8 @@ class Instruction(Model):
     type_ = CharField()
     group = CharField()
     description = TextField()
-    architecture_modes = TextField()  # JSON string for operands
+    extension = TextField() # JSON string for extension
+    architecture_modes = TextField()  # JSON string for architecture modes
     syntax = TextField()
     random_generate = BooleanField(default=False)  # New boolean flag with a default
     is_valid = BooleanField(default=True)  # Whether instruction is valid/parsed correctly

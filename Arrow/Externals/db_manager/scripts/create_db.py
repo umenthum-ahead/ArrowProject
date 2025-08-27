@@ -8,9 +8,9 @@ import os
 Script: create_db.py
 
 Description:
-This script creates and populates an SQLite database (instructions.db) from JSON data 
-in the `data/instructions.json` file. It is intended to be run only when updates 
-are made to the JSON data, ensuring the database is up-to-date for application use. 
+This script creates and populates an SQLite database (instructions.db) from JSON data
+in the `data/instructions.json` file. It is intended to be run only when updates
+are made to the JSON data, ensuring the database is up-to-date for application use.
 
 Functionality:
 - Reads instruction data from `data/instructions.json`.
@@ -76,6 +76,7 @@ def create_db(architecture:str):
                 #operand_size=entry['operand_size'],
                 type_=entry['type'],
                 group=entry['group'],
+                extension=json.dumps(entry.get('extension', '')),  # Store as JSON string
                 architecture_modes=json.dumps(entry['architecture_modes']),  # Store as JSON string
                 description=entry['description'],
                 syntax=entry['syntax'],
