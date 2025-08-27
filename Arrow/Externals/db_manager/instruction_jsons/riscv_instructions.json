@@ -3641,7 +3641,7 @@
                 },
                 {
                     "name": "immediate",
-                    "type": "imm",
+                    "type": "nzimm",
                     "role": "src",
                     "size": "6_bits_unsigned"
                 }
