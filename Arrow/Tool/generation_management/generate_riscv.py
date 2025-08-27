@@ -184,7 +184,7 @@ def generate_random_imm_with_size(size_description, nzimm=False):
     if nzimm and retval == 0:
         retval = 1
     # Now shift to generate the proper immediate value for compiler
-    if len(size_parts) > 2 and size_parts[2] == 'shift':
+    if size_parts[2] == 'shift':
         shift_amount = int(size_parts[3])
         retval = retval << shift_amount
 

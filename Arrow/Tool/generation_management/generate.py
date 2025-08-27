@@ -81,8 +81,15 @@ def generate(
     if Configuration.Architecture.riscv:
         isa_string = RiscvConfig.isa.get_value()
         if not ('rv64gc' in isa_string or 'rv32gc' in isa_string):
-            # Exclude instructions where "c" is extension
             query_filter = query_filter.where(Instruction.extension.contains('c') == False)
+        if not ('zba' in isa_string):
+            query_filter = query_filter.where(Instruction.extension.contains('zba') == False)
+        if not ('zbb' in isa_string):
+            query_filter = query_filter.where(Instruction.extension.contains('zbb') == False)
+        if not ('zbs' in isa_string):
+            query_filter = query_filter.where(Instruction.extension.contains('zbs') == False)
+        if not ('zicond' in isa_string):
+            query_filter = query_filter.where(Instruction.extension.contains('zicond') == False)
 
     # If query is an existing Expression or dict, add it to the query_filter
     if query:
