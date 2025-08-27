@@ -11,6 +11,7 @@ from Arrow.Utils.configuration_management import Configuration, get_config_manag
 from Arrow.Externals.db_manager.models import get_instruction_db
 from Arrow.Tool.register_management.register import Register
 from Arrow.Tool.memory_management.memory_operand import Memory
+from Arrow.Utils.configuration_management.riscv_config import RiscvConfig
 
 from peewee import Expression, fn
 
@@ -75,6 +76,13 @@ def generate(
     # Filter out all random_generate=False instructions
     if require_random:
         query_filter = query_filter.where(Instruction.random_generate == True)
+
+    # Filter instructions based on supported extensions
+    if Configuration.Architecture.riscv:
+        isa_string = RiscvConfig.isa.get_value()
+        if not ('rv64gc' in isa_string or 'rv32gc' in isa_string):
+            # Exclude instructions where "c" is extension
+            query_filter = query_filter.where(Instruction.extension.contains('c') == False)
 
     # If query is an existing Expression or dict, add it to the query_filter
     if query:

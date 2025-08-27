@@ -4,9 +4,11 @@ import random
 from Arrow.Arrow_API.resources.register_manager import RegisterManager_API as RegisterManager
 from Arrow.Utils.configuration_management.enums import PrivilegeLevel
 from Arrow.Tool.register_management.register_manager import RegisterManager
+from Arrow.Utils.configuration_management.knob_manager import Knob
 
 class RiscvConfig:
     """Configuration class for RISC-V architecture."""
+    isa = Knob(name='isa', value_func='rv64g', read_only=True, dynamic=False, global_knob=False, description="Specify the supported architecture (with extensions)")
     
     def __init__(self):
         registers = [reg for reg in RegisterManager.get_riscv_registers() if reg.type == "gpr" and reg.name != "x0"]
