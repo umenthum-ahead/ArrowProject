@@ -27,7 +27,7 @@ class Loop_riscv(LoopBase):
         current_state = get_current_state()
 
         if self.counter_direction == 'increment':
-            limit_register = current_state.register_manager.get()
+            limit_register = current_state.register_manager.get(reg_type="gpr")
             AsmLogger.asm(f"addi {self.counter_operand}, {self.counter_operand}, 1", comment="increment the counter by 1")
             AsmLogger.asm(f"li {limit_register}, {self.counter + 1}", comment=f"Load immediate value {self.counter + 1} as loop limit")
             AsmLogger.asm(f"blt {self.counter_operand}, {limit_register}, {self.label}  # Branch back if {self.counter_operand} < {self.counter + 1}")
