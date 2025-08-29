@@ -3161,7 +3161,7 @@
             "group": "load",
             "description": "Loads a 32-bit word from the stack, sign-extends it to the register width, and writes it to a register.",
             "syntax": "C.LWSP dest_reg, offset(sp)",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3184,7 +3184,7 @@
             "group": "load",
             "description": "Loads a 64-bit doubleword from the stack into a register.",
             "syntax": "C.LDSP dest_reg, offset(sp)",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -3207,7 +3207,7 @@
             "group": "arithmetic",
             "description": "Adds a signed immediate to a register and writes the result to the same register.",
             "syntax": "C.ADDI dest_reg, immediate",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3230,7 +3230,7 @@
             "group": "arithmetic",
             "description": "Adds a signed immediate to a register, truncates the result to 32 bits, sign-extends it to the register width, and writes it to the same register.",
             "syntax": "C.ADDIW dest_reg, immediate",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -3253,7 +3253,7 @@
             "group": "arithmetic",
             "description": "Loads a sign-extended immediate into a register.",
             "syntax": "C.LI dest_reg, immediate",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3276,7 +3276,7 @@
             "group": "arithmetic",
             "description": "Adds a non-zero multiple of 16 to the stack pointer.",
             "syntax": "C.ADDI16SP sp, immediate",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -3300,7 +3300,7 @@
             "group": "arithmetic",
             "description": "Loads a 6-bit sign-extended immediate into the bits [XLEN:12] of a register. Clears the lower 12 bits. We however specify the immediate without the shift for this. Our compiler also doesn't like anything beyond [0x1, 0x1f] although the actual range should be [-0x20, 0x1f].",
             "syntax": "C.LUI dest_reg, immediate",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3323,7 +3323,7 @@
             "group": "store",
             "description": "Stores a 32-bit word from a register to the stack.",
             "syntax": "C.SWSP src_reg, offset(sp)",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3346,7 +3346,7 @@
             "group": "store",
             "description": "Stores a 64-bit doubleword from a register to the stack.",
             "syntax": "C.SDSP src_reg, offset(sp)",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -3369,7 +3369,7 @@
             "group": "load",
             "description": "Loads a 32-bit word from memory. Offset is scaled by 4 before adding to basecreg.",
             "syntax": "C.LW dest_reg, offset(basecreg)",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3392,7 +3392,7 @@
             "group": "load",
             "description": "Loads a 64-bit doubleword from memory into a register.",
             "syntax": "C.LD dest_reg, offset(basecreg)",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -3415,7 +3415,7 @@
             "group": "store",
             "description": "Stores a 32-bit word from a register to memory.",
             "syntax": "C.SW src_reg, offset(basecreg)",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3438,7 +3438,7 @@
             "group": "store",
             "description": "Stores a 64-bit doubleword from a register to memory.",
             "syntax": "C.SD src_reg, offset(basecreg)",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -3455,7 +3455,7 @@
             "group": "control_flow",
             "description": "Unconditional jump to a target address.",
             "syntax": "C.J offset",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -3473,7 +3473,7 @@
             "group": "control_flow",
             "description": "Jumps to the address in the source register.",
             "syntax": "C.JR src_reg",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -3491,7 +3491,7 @@
             "group": "control_flow",
             "description": "Jumps to the address in the source register and stores the address of the next instruction in register ra (x1).",
             "syntax": "C.JALR src_reg",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -3502,7 +3502,7 @@
             "group": "system",
             "description": "Breakpoint for debugging.",
             "syntax": "C.EBREAK",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -3526,7 +3526,7 @@
             "group": "branch",
             "description": "Branches to the target address if the value in the register is equal to zero.",
             "syntax": "C.BEQZ src_reg, offset",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -3550,7 +3550,7 @@
             "group": "branch",
             "description": "Branches to the target address if the value in the register is not equal to zero.",
             "syntax": "C.BNEZ src_reg, offset",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -3580,7 +3580,7 @@
             "group": "arithmetic",
             "description": "Adds a non-zero 8-bit unsigned immediate (scaled by 4) to the stack pointer (sp) and writes the result to dest_reg.",
             "syntax": "C.ADDI4SPN dest_reg, sp, immediate",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         },
@@ -3604,7 +3604,7 @@
             "group": "shift",
             "description": "Performs a logical left shift of a register by an immediate amount and writes the result to the same register.",
             "syntax": "C.SLLI dest_reg, immediate",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3627,7 +3627,7 @@
             "group": "shift",
             "description": "Performs a logical right shift of a register by an immediate amount and writes the result to the same register.",
             "syntax": "C.SRLI dest_reg, immediate",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3650,7 +3650,7 @@
             "group": "shift",
             "description": "Performs an arithmetic right shift of a register by an immediate amount and writes the result to the same register.",
             "syntax": "C.SRAI dest_reg, immediate",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3673,7 +3673,7 @@
             "group": "logical",
             "description": "Performs a bitwise AND operation between a register and an immediate value and writes the result to the same register.",
             "syntax": "C.ANDI dest_reg, immediate",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3696,7 +3696,7 @@
             "group": "arithmetic",
             "description": "Copies the value from the source register to the destination register.",
             "syntax": "C.MV dest_reg, src_reg",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3719,7 +3719,7 @@
             "group": "arithmetic",
             "description": "Adds two registers and writes the result to the first register.",
             "syntax": "C.ADD dest_reg, src_reg",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3742,7 +3742,7 @@
             "group": "arithmetic",
             "description": "Subtracts one register from another and writes the result to the first register.",
             "syntax": "C.SUB dest_reg, src_reg",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3765,7 +3765,7 @@
             "group": "logical",
             "description": "Performs a bitwise XOR operation between two registers and writes the result to the first register.",
             "syntax": "C.XOR dest_reg, src_reg",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3788,7 +3788,7 @@
             "group": "logical",
             "description": "Performs a bitwise OR operation between two registers and writes the result to the first register.",
             "syntax": "C.OR dest_reg, src_reg",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3811,7 +3811,7 @@
             "group": "logical",
             "description": "Performs a bitwise AND operation between two registers and writes the result to the first register.",
             "syntax": "C.AND dest_reg, src_reg",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"]
         },
         {
@@ -3834,7 +3834,7 @@
             "group": "arithmetic",
             "description": "Adds two registers, truncates the result to 32 bits, sign-extends it to the register width, and writes it to the first register.",
             "syntax": "C.ADDW dest_reg, src_reg",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV64"]
         },
         {
@@ -3857,7 +3857,7 @@
             "group": "arithmetic",
             "description": "Subtracts one register from another, truncates the result to 32 bits, sign-extends it to the register width, and writes it to the first register.",
             "syntax": "C.SUBW dest_reg, src_reg",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV64"]
         }
     ],
@@ -4409,7 +4409,7 @@
             "group": "arithmetic",
             "description": "No operation, does nothing.",
             "syntax": "C.NOP",
-            "extension": ["c"],
+            "extension": ["compressed"],
             "architecture_modes": ["RV32", "RV64"],
             "random_generate": "False"
         }

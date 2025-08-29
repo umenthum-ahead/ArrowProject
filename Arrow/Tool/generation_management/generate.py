@@ -81,7 +81,7 @@ def generate(
     if Configuration.Architecture.riscv:
         isa_string = RiscvConfig.isa.get_value()
         if not ('rv64gc' in isa_string or 'rv32gc' in isa_string):
-            query_filter = query_filter.where(Instruction.extension.contains('c') == False)
+            query_filter = query_filter.where(Instruction.extension.contains('compressed') == False)
         if not ('zba' in isa_string):
             query_filter = query_filter.where(Instruction.extension.contains('zba') == False)
         if not ('zbb' in isa_string):
