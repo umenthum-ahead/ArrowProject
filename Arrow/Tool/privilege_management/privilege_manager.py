@@ -171,38 +171,50 @@ class PrivilegeManager:
         msp = Configuration.RiscvConfig.get_privileged_stack_pointer(PrivilegeLevel.RISCV.MACHINE)
         ssp = Configuration.RiscvConfig.get_privileged_stack_pointer(PrivilegeLevel.RISCV.SUPERVISOR)
         x0_reg = RegisterManager.get(reg_name="x0")
-        non_sp_regs = RegisterManager.get_used_registers(reg_type="gpr") + RegisterManager.get_free_registers(reg_type="gpr")
-        non_sp_regs.remove(x0_reg)  # x0 cannot be used for storing values
-        non_sp_regs = [reg for reg in non_sp_regs if reg.name not in [msp.name, ssp.name]]  # don't want to overwrite the stack pointer
-        tmp_reg = random.choice(non_sp_regs)
+        available_regs = RegisterManager.get_used_registers(reg_type="gpr") + RegisterManager.get_free_registers(reg_type="gpr")
+        # don't want to overwrite the stack pointer or ecall arg reg, and can't write to x0
+        available_regs = [reg for reg in available_regs if reg.name not in [msp.name, ssp.name, Configuration.RiscvConfig.ecall_arg_reg, "x0"]]
+        tmp_reg = random.choice(available_regs)
 
         # Helper function to randomly get x0 or tmp register
         get_tmp_or_x0_reg = lambda: random.choice([tmp_reg, x0_reg])
 
         if privilege_level == PrivilegeLevel.RISCV.MACHINE:
             AsmLogger.asm(f"csrrw {get_tmp_or_x0_reg()}, mscratch, {tmp_reg}", comment=f"Save temp register ({tmp_reg}) to mscratch")
+        elif privilege_level == PrivilegeLevel.RISCV.SUPERVISOR:
+            AsmLogger.asm(f"csrrw {get_tmp_or_x0_reg()}, sscratch, {tmp_reg}", comment=f"Save temp register ({tmp_reg}) to sscratch")
+        else:
+            raise ValueError(f"Unsupported privilege level {privilege_level} for RISC-V trap handling.")
 
-        AsmLogger.asm(f"li {tmp_reg}, {Configuration.RiscvConfig.ecall_arg_magic_val}")
-        AsmLogger.asm(f"bne {Configuration.RiscvConfig.ecall_arg_reg}, {tmp_reg}, 3f", comment="Check if a0 contains magic value")
-
+        illegal_instruction_cause = 0x2
+        breakpoint_cause = 0x3
         ecall_u_cause = 0x8
         ecall_s_cause = 0x9
         ecall_m_cause = 0xb
 
+        # labels
+        check_cause = Label(postfix="check_cause")
+        ret_same_priv = Label(postfix="ret_same_priv")
+        ecall_handler = Label(postfix="ecall_handler")
+        skip_handler = Label(postfix="skip_handler")
+        virtualize_s_trap = Label(postfix="virtualize_s_trap")
+
         if privilege_level == PrivilegeLevel.RISCV.MACHINE:
-            AsmLogger.asm(f"csrr {tmp_reg}, mcause", comment="Check if mcause == ecall")
-            AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {0 - ecall_u_cause}")
-            AsmLogger.asm(f"beqz {tmp_reg}, 1f", comment="ecall from U-mode")
-            AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {ecall_u_cause - ecall_s_cause}")
-            AsmLogger.asm(f"beqz {tmp_reg}, 1f", comment="ecall from S-mode")
-            AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {ecall_s_cause - ecall_m_cause}")
-            AsmLogger.asm(f"beqz {tmp_reg}, 2f", comment="ecall from M-mode")
-            AsmLogger.asm(f"jal {tmp_reg}, 3f", comment="unimplemented trap cause")
+            AsmLogger.asm(f"csrr {tmp_reg}, mstatus", comment="mstatus.mpp is lower privilege")
+            AsmLogger.asm(f"srli {tmp_reg}, {tmp_reg}, 11")
+            AsmLogger.asm(f"andi {tmp_reg}, {tmp_reg}, 0x3")
+            AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, -3")
+            AsmLogger.asm(f"beqz {tmp_reg}, {check_cause}", comment="If mstatus.mpp == machine, handle that normally")
 
-            AsmLogger.asm(f"1:", comment="1f branch here if maybe virtualizing ecall to S-mode")
             AsmLogger.asm(f"ld {tmp_reg}, {self.s_sp_save_mem.unique_label}")
-            AsmLogger.asm(f"beqz {tmp_reg}, 2f", comment="Check if supervisor stack pointer save is not zero")
+            AsmLogger.asm(f"bnez {tmp_reg}, {virtualize_s_trap}", comment="Check if supervisor stack pointer save is not zero")
+            AsmLogger.asm(f"li {tmp_reg}, {Configuration.RiscvConfig.ecall_arg_magic_val}", comment="Check if a0 contains magic value")
+            AsmLogger.asm(f"beq {Configuration.RiscvConfig.ecall_arg_reg}, {tmp_reg}, {ret_same_priv}", comment="if not a magic value ecall, just return by skipping over the instruction")
+            #AsmLogger.asm(f"csrr {tmp_reg}, mcause", comment="see if it was an ecall_s")
+            #AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {0 - ecall_s_cause}")
+            #AsmLogger.asm(f"beqz {tmp_reg}, {ret_same_priv}", comment="ecall from S-mode where stack save is 0 and arg reg is magic value, that means scenario is done, return to M-mode code")
 
+            AsmLogger.asm(f"{virtualize_s_trap}:", comment="virtualize the trap to S mode")
             AsmLogger.asm(f"mv {ssp}, {tmp_reg}", comment="Set supervisor stack pointer")
 
             AsmLogger.asm(f"csrr {tmp_reg}, mepc")
@@ -210,13 +222,6 @@ class PrivilegeManager:
 
             AsmLogger.asm(f"csrr {tmp_reg}, mcause", comment="Read mcause to set scause and sstatus.spp")
             AsmLogger.asm(f"csrw scause, {tmp_reg}", comment="Set scause to ecall (from U/S-mode depending on mcause)")
-            spp_bit_position = 8
-            AsmLogger.asm(f"andi {tmp_reg}, {tmp_reg}, 1")
-            AsmLogger.asm(f"slli {tmp_reg}, {tmp_reg}, {spp_bit_position}")
-            AsmLogger.asm(f"csrs sstatus, {tmp_reg}", comment="Set sstatus.spp depending on if ecall came from U mode or S mode")
-            AsmLogger.asm(f"seqz {tmp_reg}, {tmp_reg}")
-            AsmLogger.asm(f"slli {tmp_reg}, {tmp_reg}, {spp_bit_position}")
-            AsmLogger.asm(f"csrrc {get_tmp_or_x0_reg()}, sstatus, {tmp_reg}")
 
             AsmLogger.asm(f"csrrw {get_tmp_or_x0_reg()}, stval, zero", comment="Set stval to 0")
 
@@ -224,39 +229,73 @@ class PrivilegeManager:
             AsmLogger.asm(f"csrrw {get_tmp_or_x0_reg()}, mepc, {tmp_reg}", comment="Set mepc to stvec")
 
             AsmLogger.asm(f"li {tmp_reg}, 0x0800", comment="Set mstatus.mpp to supervisor mode = 01")
-            AsmLogger.asm(f"csrrs {get_tmp_or_x0_reg()}, mstatus, {tmp_reg}", comment="Already know that high bit of MPP is 0, no need to clear")
+            AsmLogger.asm(f"csrrs {tmp_reg}, mstatus, {tmp_reg}", comment="Already know that high bit of MPP is 0, no need to clear")
+            spp_bit_position = 8
+            AsmLogger.asm(f"srli {tmp_reg}, {tmp_reg}, 11")
+            AsmLogger.asm(f"andi {tmp_reg}, {tmp_reg}, 0x1")
+            AsmLogger.asm(f"slli {tmp_reg}, {tmp_reg}, {spp_bit_position}")
+            AsmLogger.asm(f"csrs sstatus, {tmp_reg}", comment="Set sstatus.spp depending on mstatus.mpp bit 0")
+            AsmLogger.asm(f"seqz {tmp_reg}, {tmp_reg}")
+            AsmLogger.asm(f"slli {tmp_reg}, {tmp_reg}, {spp_bit_position}")
+            AsmLogger.asm(f"csrrc {get_tmp_or_x0_reg()}, sstatus, {tmp_reg}", comment="Clear sstatus.spp depending on mstatus.mpp bit 0")
 
             AsmLogger.asm(f"csrrw {tmp_reg}, mscratch, {get_tmp_or_x0_reg()}", comment="Restore temp register from mscratch")
 
             AsmLogger.asm(f"mret", comment="Return to supervisor mode")
         elif privilege_level == PrivilegeLevel.RISCV.SUPERVISOR:
-            AsmLogger.asm(f"csrr {tmp_reg}, scause", comment="Check if scause == ecall")
-            AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {0 - ecall_u_cause}")
-            AsmLogger.asm(f"beqz {tmp_reg}, 2f", comment="ecall from U-mode")
-            AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {ecall_u_cause - ecall_s_cause}")
-            AsmLogger.asm(f"beqz {tmp_reg}, 2f", comment="ecall from S-mode")
-            AsmLogger.asm(f"jal {get_tmp_or_x0_reg()}, 3f", comment="unimplemented trap cause")
             pass
         else:
             raise ValueError(f"Unsupported privilege level {privilege_level} for RISC-V trap handling.")
 
         # This last chunk of code is generic to M and S modes, need to genericize the stack pointer register
+        AsmLogger.asm(f"{check_cause}:", comment="branch here to check cause and branch to appropriate handler")
         if privilege_level == PrivilegeLevel.RISCV.MACHINE:
             sp = msp
             sp_save_label = self.m_sp_save_mem.unique_label
+            epc = "mepc"
+            scratch = "mscratch"
+            ret = "mret"
+            AsmLogger.asm(f"csrr {tmp_reg}, mcause", comment="Check mcause")
+            AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {0 - ecall_m_cause}")
+            AsmLogger.asm(f"beqz {tmp_reg}, {ecall_handler}", comment="ecall from M-mode")
+            AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {ecall_m_cause - breakpoint_cause}")
         elif privilege_level == PrivilegeLevel.RISCV.SUPERVISOR:
             sp = ssp
             sp_save_label = self.s_sp_save_mem.unique_label
+            epc = "sepc"
+            scratch = "sscratch"
+            ret = "sret"
+            AsmLogger.asm(f"csrr {tmp_reg}, scause", comment="Check scause")
+            AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {0 - ecall_u_cause}")
+            AsmLogger.asm(f"beqz {tmp_reg}, {ecall_handler}", comment="ecall from U-mode")
+            AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {ecall_u_cause - ecall_s_cause}")
+            AsmLogger.asm(f"beqz {tmp_reg}, {ecall_handler}", comment="ecall from S-mode")
+            AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {ecall_s_cause - breakpoint_cause}")
+        else:
+            raise ValueError(f"Unsupported privilege level {privilege_level} for RISC-V trap handling.")
 
-        AsmLogger.asm(f"2:", comment="2f branch here if restoring last same-privilege level (non-trap handler) execution state")
-        AsmLogger.asm(f"ld {sp}, {sp_save_label}", comment="Restore stack pointer from sp save memory")
-
-        AsmLogger.asm(f"ld {tmp_reg}, 0({sp})", comment="Pop saved PC from stack")
-
-        AsmLogger.asm(f"jalr {get_tmp_or_x0_reg()}, {tmp_reg}, 0", comment="Jump to saved PC")
-
-        AsmLogger.asm(f"3:", comment="3f branch here to end test with failure due to unexpected trap")
+        AsmLogger.asm(f"beqz {tmp_reg}, {skip_handler}", comment="Handle breakpoint exception")
+        AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {breakpoint_cause - illegal_instruction_cause}")
+        AsmLogger.asm(f"beqz {tmp_reg}, {skip_handler}", comment="Handle illegal instruction exception")
+        # If we get here, it's an unexpected exception
         end_test_asm_convention(test_pass=False)
+
+        # For things like breakpoint and illegal instruction exceptions, simply skip over the excepting instruction
+        AsmLogger.asm(f"{skip_handler}:", comment="Handle breakpoint/illegal instruction - skip and continue")
+        AsmLogger.asm(f"csrr {tmp_reg}, {epc}", comment="Read exception PC")
+        AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, 4", comment="Skip past faulting instruction (4 bytes)")
+        AsmLogger.asm(f"csrw {epc}, {tmp_reg}", comment="Write back updated PC")
+        AsmLogger.asm(f"csrrw {tmp_reg}, {scratch}, {RegisterManager.get_any()}", comment="Restore temp register from scratch")
+        AsmLogger.asm(f"{ret}", comment="Return from exception")
+
+        AsmLogger.asm(f"{ecall_handler}:", comment="branch here to check if a0 is magic value")
+        AsmLogger.asm(f"li {tmp_reg}, {Configuration.RiscvConfig.ecall_arg_magic_val}", comment="Check if a0 contains magic value")
+        AsmLogger.asm(f"bne {Configuration.RiscvConfig.ecall_arg_reg}, {tmp_reg}, {skip_handler}", comment="if not a magic value ecall, just return by skipping over the instruction")
+
+        AsmLogger.asm(f"{ret_same_priv}:", comment="branch here if restoring last same-privilege level (non-trap handler) execution state")
+        AsmLogger.asm(f"ld {sp}, {sp_save_label}", comment="Restore stack pointer from sp save memory")
+        AsmLogger.asm(f"ld {tmp_reg}, 0({sp})", comment="Pop saved PC from stack")
+        AsmLogger.asm(f"jalr {get_tmp_or_x0_reg()}, {tmp_reg}, 0", comment="Jump to saved PC")
 
 # Factory function to retrieve or create the PrivilegeManager instance
 def get_privilege_manager():

@@ -81,6 +81,13 @@ def do_boot():
             Configuration.RiscvConfig.register_stack_memory(curr_state.privilege_level, stack_block)
             if curr_state.privilege_level == PrivilegeLevel.RISCV.MACHINE:
                 AsmLogger.asm(f"la sp, {stack_block.unique_label} + {stack_block.byte_size - 8}", comment="Load the value of the stack")
+                tmp_reg = RegisterManager.get()
+                AsmLogger.asm(f"li {tmp_reg}, 0x3fffffffffff", comment="Initialize PMP15")
+                AsmLogger.asm(f"csrw pmpaddr15, {tmp_reg}")
+                AsmLogger.asm(f"li {tmp_reg}, 0x1f00000000000000")
+                AsmLogger.asm(f"csrw pmpcfg2, {tmp_reg}")
+                AsmLogger.asm(f"sfence.vma x0, x0")
+
         elif Configuration.Architecture.arm:
             AsmLogger.comment(f"TODO: stack initialization for ARM")
         else:
