@@ -79,20 +79,26 @@ class AccessFaultIngredient(AR.Ingredient):
         """Initialize ingredient resources and set up PMP if enabled."""
         AR.comment(f"Initializing {self.name}")
         
-        # Allocate memory for testing access faults
-        self.restricted_memory = MemoryManager.Memory(
-            name="restricted_test_memory",
-            byte_size=4096,  # 4KB region
-            init_value=0xDEADBEEF
-        )
+        # Use the fixed PMP hole address set up in test_boot.py
+        # Instead of allocating memory, we reference the fixed address
+        self.pmp_hole_base_addr = 0x80000000
+        self.pmp_hole_size = 0x1000  # 4KB hole
         
-        # Reserve registers for PMP setup and testing
+        # Reserve registers for testing (no longer need PMP setup registers)
         self.test_registers = [
-            RegisterManager.get_and_reserve() for _ in range(4)
+            RegisterManager.get_and_reserve() for _ in range(3)
         ]
         
-        if self.setup_pmp:
-            self._setup_pmp_configuration()
+        # PMP hole is already set up in test_boot.py, no need to configure here
+        AR.comment(f"Using PMP hole at address 0x{self.pmp_hole_base_addr:08x} (size: {self.pmp_hole_size} bytes)")
+        
+        # Store PMP region info for reference  
+        self.pmp_regions.append({
+            'base_address': f"0x{self.pmp_hole_base_addr:08x}",
+            'size': self.pmp_hole_size,
+            'permissions': '',  # No permissions - this is the hole
+            'mode': PMPAddressMode.NAPOT
+        })
     
     def body(self):
         """Generate access fault test sequences."""
@@ -128,47 +134,6 @@ class AccessFaultIngredient(AR.Ingredient):
         self.test_registers.clear()
         self.pmp_regions.clear()
     
-    def _setup_pmp_configuration(self):
-        """
-        Set up PMP configuration to create restricted memory regions.
-        Based on riscv-dv PMP setup logic.
-        """
-        AR.comment("Setting up PMP configuration for access fault testing")
-        
-        base_reg = self.test_registers[0]
-        cfg_reg = self.test_registers[1]
-        addr_reg = self.test_registers[2]
-        temp_reg = self.test_registers[3]
-        
-        # Get the address of our restricted memory region
-        AsmLogger.asm(f"la {base_reg}, {self.restricted_memory.unique_label}")
-        
-        # Set up PMP address register (pmpaddr0)
-        # For TOR mode, this is the top of the range
-        AsmLogger.asm(f"addi {addr_reg}, {base_reg}, {self.restricted_memory.byte_size}")
-        AsmLogger.asm(f"srli {addr_reg}, {addr_reg}, 2", comment="Convert to PMP address format")
-        AsmLogger.asm(f"csrw 0x{self.pmpaddr_base:03x}, {addr_reg}", comment="Set pmpaddr0")
-        
-        # Set up PMP configuration (pmpcfg0)
-        # Configure entry 0: TOR mode, locked, no permissions (causes faults)
-        pmp_cfg = (
-            (PMPAddressMode.TOR.value << 3) |  # A field: TOR mode
-            (1 << 7)  # L bit: locked
-            # R, W, X bits all 0 = no permissions
-        )
-        
-        AsmLogger.asm(f"li {cfg_reg}, {pmp_cfg}", comment="PMP config: TOR, locked, no access")
-        AsmLogger.asm(f"csrw 0x{self.pmpcfg_csrs[0]:03x}, {cfg_reg}", comment="Set pmpcfg0")
-        
-        # Store PMP region info
-        self.pmp_regions.append({
-            'base_address': self.restricted_memory.unique_label,
-            'size': self.restricted_memory.byte_size,
-            'permissions': PMPAccessType.READ.value,  # Will cause faults for W/X
-            'mode': PMPAddressMode.TOR
-        })
-        
-        AR.comment("PMP configuration complete - region is now restricted")
     
     def _choose_random_fault_type(self) -> AccessFaultType:
         """Choose a random access fault type."""
@@ -181,43 +146,47 @@ class AccessFaultIngredient(AR.Ingredient):
         return random.choice(fault_types)
     
     def _generate_instruction_access_fault(self):
-        """Generate an instruction access fault by jumping to restricted memory."""
-        AR.comment("Attempting instruction fetch from restricted memory")
+        """Generate an instruction access fault by jumping to PMP hole using JALR."""
+        AR.comment("Attempting instruction fetch from PMP hole (riscv-dv pattern)")
         
         addr_reg = self.test_registers[0]
         
-        # Load address of restricted memory
-        AsmLogger.asm(f"la {addr_reg}, {self.restricted_memory.unique_label}")
+        # Get the ecall magic register for return address (following riscv-dv pattern)
+        # This register will be used by the trap handler to resume execution
+        ecall_reg = Configuration.RiscvConfig.ecall_arg_reg
         
-        # Attempt to jump to the restricted memory region
-        # This should cause an instruction access fault
-        AsmLogger.asm(f"jr {addr_reg}  # Jump to restricted memory - will fault")
+        # Load address of PMP hole (fixed address from test_boot.py)
+        AsmLogger.asm(f"li {addr_reg}, 0x{self.pmp_hole_base_addr:08x}", comment="Load PMP hole address")
+        
+        # Use JALR with ecall magic register as rd so trap handler knows where to return
+        # This follows riscv-dv's pattern: JALR with rd=cfg.gpr[2] (ecall register)
+        AsmLogger.asm(f"jalr {ecall_reg.name}, {addr_reg}, 0  # Jump to PMP hole - will fault, return addr in {ecall_reg.name}")
     
     def _generate_load_access_fault(self):
-        """Generate a load access fault by reading from restricted memory."""
-        AR.comment("Attempting load from restricted memory")
+        """Generate a load access fault by reading from PMP hole."""
+        AR.comment("Attempting load from PMP hole")
         
         addr_reg = self.test_registers[0]
         data_reg = self.test_registers[1]
         
-        # Load address of restricted memory
-        AsmLogger.asm(f"la {addr_reg}, {self.restricted_memory.unique_label}")
+        # Load address of PMP hole (fixed address from test_boot.py)
+        AsmLogger.asm(f"li {addr_reg}, 0x{self.pmp_hole_base_addr:08x}", comment="Load PMP hole address")
         
         # Attempt various load operations
         load_ops = ["lb", "lh", "lw", "ld"]
         load_op = random.choice(load_ops)
         
-        AsmLogger.asm(f"{load_op} {data_reg}, 0({addr_reg})  # Load from restricted memory - will fault")
+        AsmLogger.asm(f"{load_op} {data_reg}, 0({addr_reg})  # Load from PMP hole - will fault")
     
     def _generate_store_access_fault(self):
-        """Generate a store access fault by writing to restricted memory."""
-        AR.comment("Attempting store to restricted memory")
+        """Generate a store access fault by writing to PMP hole."""
+        AR.comment("Attempting store to PMP hole")
         
         addr_reg = self.test_registers[0]
         data_reg = self.test_registers[1]
         
-        # Load address of restricted memory
-        AsmLogger.asm(f"la {addr_reg}, {self.restricted_memory.unique_label}")
+        # Load address of PMP hole (fixed address from test_boot.py)
+        AsmLogger.asm(f"li {addr_reg}, 0x{self.pmp_hole_base_addr:08x}", comment="Load PMP hole address")
         
         # Load test data
         AsmLogger.asm(f"li {data_reg}, 0xCAFEBABE")
@@ -226,7 +195,7 @@ class AccessFaultIngredient(AR.Ingredient):
         store_ops = ["sb", "sh", "sw", "sd"]
         store_op = random.choice(store_ops)
         
-        AsmLogger.asm(f"{store_op} {data_reg}, 0({addr_reg})  # Store to restricted memory - will fault")
+        AsmLogger.asm(f"{store_op} {data_reg}, 0({addr_reg})  # Store to PMP hole - will fault")
     
     def _generate_atomic_access_fault(self):
         """Generate an atomic operation access fault."""
@@ -280,14 +249,12 @@ class AccessFaultIngredient(AR.Ingredient):
         AR.comment("PMP permissions updated - access should now succeed")
     
     def get_restricted_memory_info(self) -> Dict[str, Any]:
-        """Get information about the restricted memory region."""
-        if self.restricted_memory:
-            return {
-                'label': self.restricted_memory.unique_label,
-                'size': self.restricted_memory.byte_size,
-                'init_value': self.restricted_memory.init_value,
-            }
-        return {}
+        """Get information about the PMP hole region."""
+        return {
+            'address': f"0x{self.pmp_hole_base_addr:08x}",
+            'size': self.pmp_hole_size,
+            'type': 'PMP hole (no RWX permissions)',
+        }
     
     def get_pmp_configuration(self) -> List[Dict[str, Any]]:
         """Get the current PMP configuration."""

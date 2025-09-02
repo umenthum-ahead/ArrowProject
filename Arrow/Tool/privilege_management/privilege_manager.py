@@ -186,8 +186,11 @@ class PrivilegeManager:
         else:
             raise ValueError(f"Unsupported privilege level {privilege_level} for RISC-V trap handling.")
 
+        instruction_access_fault_cause = 0x1
         illegal_instruction_cause = 0x2
         breakpoint_cause = 0x3
+        load_access_fault_cause = 0x5
+        store_amo_access_fault_cause = 0x7
         ecall_u_cause = 0x8
         ecall_s_cause = 0x9
         ecall_m_cause = 0xb
@@ -197,6 +200,7 @@ class PrivilegeManager:
         ret_same_priv = Label(postfix="ret_same_priv")
         ecall_handler = Label(postfix="ecall_handler")
         skip_handler = Label(postfix="skip_handler")
+        instruction_fault_handler = Label(postfix="instruction_fault_handler")
         virtualize_s_trap = Label(postfix="virtualize_s_trap")
 
         if privilege_level == PrivilegeLevel.RISCV.MACHINE:
@@ -210,12 +214,13 @@ class PrivilegeManager:
             AsmLogger.asm(f"bnez {tmp_reg}, {virtualize_s_trap}", comment="Check if supervisor stack pointer save is not zero")
             AsmLogger.asm(f"li {tmp_reg}, {Configuration.RiscvConfig.ecall_arg_magic_val}", comment="Check if a0 contains magic value")
             AsmLogger.asm(f"beq {Configuration.RiscvConfig.ecall_arg_reg}, {tmp_reg}, {ret_same_priv}", comment="if not a magic value ecall, just return by skipping over the instruction")
+            #AsmLogger.asm(f"ld {tmp_reg}, {self.s_sp_save_mem.unique_label}")
             #AsmLogger.asm(f"csrr {tmp_reg}, mcause", comment="see if it was an ecall_s")
             #AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {0 - ecall_s_cause}")
             #AsmLogger.asm(f"beqz {tmp_reg}, {ret_same_priv}", comment="ecall from S-mode where stack save is 0 and arg reg is magic value, that means scenario is done, return to M-mode code")
 
             AsmLogger.asm(f"{virtualize_s_trap}:", comment="virtualize the trap to S mode")
-            AsmLogger.asm(f"mv {ssp}, {tmp_reg}", comment="Set supervisor stack pointer")
+            #AsmLogger.asm(f"mv {ssp}, {tmp_reg}", comment="Set supervisor stack pointer")
 
             AsmLogger.asm(f"csrr {tmp_reg}, mepc")
             AsmLogger.asm(f"csrw sepc, {tmp_reg}", comment="Set sepc to mepc")
@@ -277,6 +282,12 @@ class PrivilegeManager:
         AsmLogger.asm(f"beqz {tmp_reg}, {skip_handler}", comment="Handle breakpoint exception")
         AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {breakpoint_cause - illegal_instruction_cause}")
         AsmLogger.asm(f"beqz {tmp_reg}, {skip_handler}", comment="Handle illegal instruction exception")
+        AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {illegal_instruction_cause - instruction_access_fault_cause}")
+        AsmLogger.asm(f"beqz {tmp_reg}, {instruction_fault_handler}", comment="Handle instruction access fault")
+        AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {instruction_access_fault_cause - load_access_fault_cause}")
+        AsmLogger.asm(f"beqz {tmp_reg}, {skip_handler}", comment="Handle load access fault - skip instruction")
+        AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, {load_access_fault_cause - store_amo_access_fault_cause}")
+        AsmLogger.asm(f"beqz {tmp_reg}, {skip_handler}", comment="Handle store/AMO access fault - skip instruction")
         # If we get here, it's an unexpected exception
         end_test_asm_convention(test_pass=False)
 
@@ -285,6 +296,15 @@ class PrivilegeManager:
         AsmLogger.asm(f"csrr {tmp_reg}, {epc}", comment="Read exception PC")
         AsmLogger.asm(f"addi {tmp_reg}, {tmp_reg}, 4", comment="Skip past faulting instruction (4 bytes)")
         AsmLogger.asm(f"csrw {epc}, {tmp_reg}", comment="Write back updated PC")
+        AsmLogger.asm(f"csrrw {tmp_reg}, {scratch}, {RegisterManager.get_any()}", comment="Restore temp register from scratch")
+        AsmLogger.asm(f"{ret}", comment="Return from exception")
+
+        # Instruction access fault handler - uses ecall magic register pattern
+        AsmLogger.asm(f"{instruction_fault_handler}:", comment="Handle instruction access fault using riscv-dv pattern")
+        ecall_reg = Configuration.RiscvConfig.ecall_arg_reg
+        AsmLogger.asm(f"beqz {ecall_reg}, {skip_handler}", comment="If ecall register is 0, fall back to skip instruction")
+        AsmLogger.asm(f"csrrw {get_tmp_or_x0_reg()}, {epc}, {ecall_reg}", comment="Set EPC to return address from JALR")
+        AsmLogger.asm(f"li {ecall_reg}, 0", comment="Clear ecall register")
         AsmLogger.asm(f"csrrw {tmp_reg}, {scratch}, {RegisterManager.get_any()}", comment="Restore temp register from scratch")
         AsmLogger.asm(f"{ret}", comment="Return from exception")
 

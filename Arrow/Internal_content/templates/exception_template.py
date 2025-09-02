@@ -146,6 +146,7 @@ def access_fault_scenario():
     
     # Create access fault ingredient with PMP setup
     access_ingredient = AccessFaultIngredient(
+        fault_type=None,  # Use random fault type
         fault_count=6,
         setup_pmp=True
     )
@@ -177,6 +178,7 @@ def amo_fault_scenario():
     
     # Create AMO fault ingredient
     amo_ingredient = AMOFaultIngredient(
+        fault_type=None,  # Use random fault type
         amo_count=5,
         enable_lr_sc=True,
         setup_restricted_memory=True

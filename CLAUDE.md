@@ -160,3 +160,4 @@ The agent is designed for use with Claude Code's Task tool:
 - `Arrow/Tool/memory_management/memory_manager.py` - Memory allocation
 - `Arrow/Tool/register_management/register_manager.py` - Register management
 - `arrow_agent/` - Arrow Development Agent (isolated directory)
+- Always output analysis report files to the test run directory, not the source directory.

@@ -82,6 +82,23 @@ def do_boot():
             if curr_state.privilege_level == PrivilegeLevel.RISCV.MACHINE:
                 AsmLogger.asm(f"la sp, {stack_block.unique_label} + {stack_block.byte_size - 8}", comment="Load the value of the stack")
                 tmp_reg = RegisterManager.get()
+                
+                # Set up PMP hole for access fault testing using NAPOT mode
+                # NAPOT is better for creating a specific hole without affecting other memory
+                pmp_hole_base = 0x80000000
+                pmp_hole_size = 0x1000  # 4KB hole
+                # For NAPOT: address = base | (size-1) >> 1, then >> 2 for PMP format
+                napot_addr = pmp_hole_base | ((pmp_hole_size - 1) >> 1)
+                AsmLogger.asm(f"li {tmp_reg}, 0x{napot_addr:08x}", comment="PMP hole NAPOT address")
+                AsmLogger.asm(f"srli {tmp_reg}, {tmp_reg}, 2", comment="Convert to PMP address format (>>2)")
+                AsmLogger.asm(f"csrw pmpaddr0, {tmp_reg}", comment="Set pmpaddr0 for access fault hole")
+                
+                # Configure PMP entry 0: NAPOT mode, locked, no permissions (R=W=X=0)
+                pmp_hole_cfg = 0x80 | (3 << 3)  # L=1 (locked), A=3 (NAPOT), R=W=X=0 (no access)
+                AsmLogger.asm(f"li {tmp_reg}, {pmp_hole_cfg}", comment="PMP hole config: NAPOT, locked, no RWX")
+                AsmLogger.asm(f"csrw pmpcfg0, {tmp_reg}", comment="Create PMP hole for access faults")
+                
+                # Initialize PMP15 for general protection (existing code)
                 AsmLogger.asm(f"li {tmp_reg}, 0x3fffffffffff", comment="Initialize PMP15")
                 AsmLogger.asm(f"csrw pmpaddr15, {tmp_reg}")
                 AsmLogger.asm(f"li {tmp_reg}, 0x1f00000000000000")
