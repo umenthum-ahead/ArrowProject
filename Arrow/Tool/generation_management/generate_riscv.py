@@ -69,12 +69,36 @@ def generate_riscv(
             if isinstance(src, Memory):
                 eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg)
             else:
-                eval_operand = src
+                # Check if operand type matches what src actually is
+                if operand['type'] == "reg":
+                    eval_operand = src
+                elif operand['type'] == "imm":
+                    # src is a register but operand expects immediate - this is invalid mapping
+                    # Fall back to generating a proper immediate
+                    random_imm = generate_random_imm_with_size(operand['size'])
+                    eval_operand = random_imm
+                elif operand['type'] == "offset_plus_basereg":
+                    # src is a register but operand expects memory format
+                    eval_operand = f"0({src})"
+                else:
+                    eval_operand = src  # fallback
         elif dest_location == op_location:
             if isinstance(dest, Memory):
                 eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg)
             else:
-                eval_operand = dest
+                # Check if operand type matches what dest actually is
+                if operand['type'] == "reg":
+                    eval_operand = dest
+                elif operand['type'] == "imm":
+                    # dest is a register but operand expects immediate - this is invalid mapping
+                    # Fall back to generating a proper immediate
+                    random_imm = generate_random_imm_with_size(operand['size'])
+                    eval_operand = random_imm
+                elif operand['type'] == "offset_plus_basereg":
+                    # dest is a register but operand expects memory format
+                    eval_operand = f"0({dest})"
+                else:
+                    eval_operand = dest  # fallback
         elif operand['type'] == "reg":
             eval_operand = current_state.register_manager.get(reg_type="gpr")
         elif operand['type'] == "imm":
@@ -90,7 +114,23 @@ def generate_riscv(
             # For every memory usage, we will plant a dynamic_init instruction to place that memory address in a temp register
             # this is done to avoid using memories offset due to their formatting requirements and my lack of knowledge.
             # TODO:: need to improve that logic and integrate offset allocation and avoid dynamic_init where possible!
-            eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg)
+            
+            # Check if this operand is mapped to src/dest and if they are Memory objects
+            if (src_location == op_location and isinstance(src, Memory)) or (dest_location == op_location and isinstance(dest, Memory)):
+                eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg)
+            else:
+                # Handle case where offset_plus_basereg operand exists but no Memory object was provided
+                # This happens with store instructions that need offset(register) format
+                if src_location == op_location and not isinstance(src, Memory):
+                    # src is a register but this operand expects offset_plus_basereg format
+                    eval_operand = f"0({src})"
+                elif dest_location == op_location and not isinstance(dest, Memory):
+                    # dest is a register but this operand expects offset_plus_basereg format  
+                    eval_operand = f"0({dest})"
+                else:
+                    # Neither src nor dest maps to this operand, get a random register
+                    base_reg = current_state.register_manager.get(reg_type="gpr")
+                    eval_operand = f"0({base_reg})"
         elif operand['type'] == "offset_imm":
             eval_operand = random.randint(0, 100)
         else:

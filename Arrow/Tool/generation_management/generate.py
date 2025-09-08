@@ -12,7 +12,7 @@ from Arrow.Externals.db_manager.models import get_instruction_db
 from Arrow.Tool.register_management.register import Register
 from Arrow.Tool.memory_management.memory_operand import Memory
 
-from peewee import Expression, fn
+from peewee import Expression, fn, SQL
 
 
 # @staticmethod
@@ -89,32 +89,88 @@ def generate(
         else:
             raise ValueError("Invalid query format. Expected Expression or dict.")
 
-    # Add operand-based filters (if provided)
+    # Apply basic SQL filters first (for ARM ASL case)
     if src is not None:
         query_filter = add_operand_filter(query_filter, src, role="src", Instruction=Instruction, Operand=Operand)
     if dest is not None:
         query_filter = add_operand_filter(query_filter, dest, role="dest", Instruction=Instruction, Operand=Operand)
 
-    instruction_count_in_db = query_filter.count()
-    if instruction_count_in_db == 0:
+    # Get all instructions from database and filter in Python for operand matching
+    # This avoids SQL JSON binding issues
+    all_instructions = list(query_filter)
+    
+    # Filter instructions based on src/dest operand requirements using Python
+    filtered_instructions = []
+    debug_info = False  # Disable debug output now that issues are resolved
+    
+    if debug_info:
+        print(f"DEBUG: Filtering {len(all_instructions)} instructions")
+        if src: print(f"DEBUG: src operand: {src}, type: {type(src)}, operand.type: {getattr(src, 'type', 'N/A')}")
+        if dest: print(f"DEBUG: dest operand: {dest}, type: {type(dest)}, operand.type: {getattr(dest, 'type', 'N/A')}")
+    
+    for instr in all_instructions:
+        import ast
+        
+        # Parse operands if they're stored as string
+        operands_list = instr.operands
+        if isinstance(instr.operands, str):
+            try:
+                operands_list = ast.literal_eval(instr.operands)
+            except:
+                continue
+        
+        # Check if instruction matches operand requirements
+        src_match = src is None or matches_operand_requirement(operands_list, src, "src")
+        dest_match = dest is None or matches_operand_requirement(operands_list, dest, "dest")
+        
+        if src_match and dest_match:
+            filtered_instructions.append(instr)
+    
+    if debug_info and len(filtered_instructions) == 0:
+        print(f"DEBUG: Found {len(filtered_instructions)} matching instructions after filtering")
+        # Show sample operand types for debugging
+        print("DEBUG: Sample operand types from database:")
+        for i, instr in enumerate(all_instructions[:5]):
+            operands_list = instr.operands
+            if isinstance(instr.operands, str):
+                try:
+                    operands_list = ast.literal_eval(instr.operands)
+                except:
+                    continue
+            print(f"  Instruction {instr.mnemonic}: {operands_list}")
+        
+    elif debug_info:
+        print(f"DEBUG: Found {len(filtered_instructions)} matching instructions after filtering")
+    
+    if len(filtered_instructions) == 0:
         raise ValueError("No instructions found matching the specified criteria.")
 
     instruction_list = []
     for _ in range(instruction_count):
-        # Use database OFFSET to get a random instruction (including invalid ones)
-        # Try up to 10 times to find a valid instruction (same retry logic as before)
+        # Try to find a valid instruction from filtered results
         selected_instruction = None
         for attempt in range(15):
-            random_offset = random.randint(0, instruction_count_in_db - 1)
-            candidate_instruction = query_filter.offset(random_offset).limit(1).first()
-           
-            if candidate_instruction and candidate_instruction.is_valid:
+            candidate_instruction = random.choice(filtered_instructions)
+            
+            # For non-ARM architectures, use random_generate field or skip validation
+            if hasattr(candidate_instruction, 'is_valid'):
+                # ARM ASL case
+                if candidate_instruction.is_valid:
+                    selected_instruction = candidate_instruction
+                    break
+                elif instruction_debug_prints:
+                    print(f"        ⚠️   Skipping instruction!!! instruction {candidate_instruction.syntax} is not parsed correctly yet.")
+            elif hasattr(candidate_instruction, 'random_generate'):
+                # For other architectures, use random_generate or just accept the instruction
+                if candidate_instruction.random_generate:
+                    selected_instruction = candidate_instruction
+                    break
+                elif instruction_debug_prints:
+                    print(f"        ⚠️   Skipping instruction!!! instruction {candidate_instruction.syntax} is not marked for random generation.")
+            else:
+                # No validation field available, just use the instruction
                 selected_instruction = candidate_instruction
                 break
-            elif candidate_instruction:
-                # Log invalid instructions (same as original behavior)
-                if instruction_debug_prints:
-                    print(f"        ⚠️   Skipping instruction!!! instruction {candidate_instruction.syntax} is not parsed correctly yet.")
        
         if not selected_instruction:
             raise ValueError("No valid instructions found matching the specified criteria after multiple attempts.")
@@ -135,7 +191,11 @@ def generate(
 
 
 def add_operand_filter(query_filter, operand, role, Instruction, Operand):
-    """Add operand-based filters to the query using provided Instruction and Operand models"""
+    """Add operand-based filters to the query using provided Instruction and Operand models
+    
+    Updated to work with the new JSON operands format where operands are stored as:
+    [{"name": "dest_reg", "type": "reg", "role": "dest", "size": "full_register_width"}, ...]
+    """
 
     config_manager = get_config_manager()
     instruction_debug_prints = config_manager.get_value('Instruction_debug_prints')
@@ -145,8 +205,7 @@ def add_operand_filter(query_filter, operand, role, Instruction, Operand):
             print(f"   Input parameter:: {operand}, role = {role}, type = {operand.type}")
 
         if operand.type == "sve_pred" and (int(operand.name[1:]) >= 8):
-            # if type is of Predicate (P1-P16) and op.name is higher than P7, need to make sure we are querying for width of 4 and not 3. lower Predicates can have both width 3 and 4.
-            # Then join Operand if not already joined, and add filters from Operand
+            # ARM SVE predicate specific handling - use Operand join for ARM ASL case
             if Operand is None:
                 raise ValueError("Operand model not available for sve_pred filtering")
                 
@@ -156,33 +215,50 @@ def add_operand_filter(query_filter, operand, role, Instruction, Operand):
                 (Operand.width == 4) &
                 (Operand.is_memory == False)
             )
-        elif operand.type == "gpr" or operand.type == "simdfp":
-            # gpr - reg of type gpr can be used for various types of operands ("gpr_32", "gpr_64", "gpr_var"]
-            # simdfp - reg of type simdfp can be used for various types of operands ("simdfp_scalar_128", "simdfp_scalar_16", "simdfp_scalar_32", "simdfp_scalar_64", "simdfp_scalar_8", "simdfp_scalar_var", "simdfp_vec"]
-            query_filter = query_filter.where(
-                ((Instruction.op1_role.contains(role)) & (Instruction.op1_type.startswith(operand.type)) & (Instruction.op1_ismemory == False)) |
-                ((Instruction.op2_role.contains(role)) & (Instruction.op2_type.startswith(operand.type)) & (Instruction.op2_ismemory == False)) |
-                ((Instruction.op3_role.contains(role)) & (Instruction.op3_type.startswith(operand.type)) & (Instruction.op3_ismemory == False)) |
-                ((Instruction.op4_role.contains(role)) & (Instruction.op4_type.startswith(operand.type)) & (Instruction.op4_ismemory == False))
-            )
-        else:  # sve_reg , sev_pred
-            query_filter = query_filter.where(
-                ((Instruction.op1_role.contains(role)) & (Instruction.op1_type == operand.type) & (Instruction.op1_ismemory == False)) |
-                ((Instruction.op2_role.contains(role)) & (Instruction.op2_type == operand.type) & (Instruction.op2_ismemory == False)) |
-                ((Instruction.op3_role.contains(role)) & (Instruction.op3_type == operand.type) & (Instruction.op3_ismemory == False)) |
-                ((Instruction.op4_role.contains(role)) & (Instruction.op4_type == operand.type) & (Instruction.op4_ismemory == False))
-            )
+        # For other register types, skip SQL filtering and do Python filtering later
+        # This avoids SQL JSON binding issues
 
     elif isinstance(operand, Memory):
         if instruction_debug_prints:
             print(f"   Input parameter:: {operand}, role = {role}, type = {type(operand)}")
-
-        query_filter = query_filter.where(
-            ((Instruction.op1_role.contains(role)) & (Instruction.op1_ismemory == True)) |
-            ((Instruction.op2_role.contains(role)) & (Instruction.op2_ismemory == True)) |
-            ((Instruction.op3_role.contains(role)) & (Instruction.op3_ismemory == True)) |
-            ((Instruction.op4_role.contains(role)) & (Instruction.op4_ismemory == True))
-        )
+        # Skip SQL filtering for memory operands too, do Python filtering later
 
     return query_filter
+
+
+def matches_operand_requirement(operands_list, operand, role):
+    """Check if any operand in the operands_list matches the requirements"""
+    if not isinstance(operands_list, list):
+        return False
+        
+    for op in operands_list:
+        if not isinstance(op, dict):
+            continue
+            
+        # Check role match
+        if op.get('role') != role:
+            continue
+            
+        # Check type match based on operand type
+        op_type = op.get('type', '')
+        
+        if isinstance(operand, Register):
+            if operand.type == "gpr":
+                # GPR registers match database 'reg' type
+                if op_type == 'reg':
+                    return True
+            elif operand.type == "simdfp":
+                # SIMD/FP registers - may need different matching logic
+                if op_type.startswith("simdfp") or op_type == 'reg':
+                    return True
+            else:
+                # For exact type matches or other register types
+                if op_type == operand.type:
+                    return True
+        elif isinstance(operand, Memory):
+            # For memory operands, look for memory-related types
+            if 'mem' in op_type.lower() or op_type == 'offset_plus_basereg':
+                return True
+    
+    return False
 

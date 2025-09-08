@@ -154,8 +154,34 @@ def do_body():
                 
                 AsmLogger.comment(f"========================= state {state_id} - TEST BODY - start =====================")
             else:
-                # Paging is disabled - skip AsmLogger calls
-                logger.debug(f"Paging disabled - skipping AsmLogger calls for state {state_id}")
+                # Paging is disabled - set up basic code segment for instruction collection
+                logger.debug(f"Paging disabled - setting up non-paging code segment for state {state_id}")
+                
+                # Ensure current_code_block is set for non-paging mode
+                if current_state.current_code_block is None:
+                    # The state should already have a NonPagingSegmentManager from initialization
+                    # Create a basic code segment for storing generated instructions
+                    segment_manager = getattr(current_state, 'segment_manager', None)
+                    if segment_manager is None:
+                        # Create a NonPagingSegmentManager if one doesn't exist
+                        from Arrow.Tool.memory_management.memlayout.non_paging_segment_manager import NonPagingSegmentManager
+                        segment_manager = NonPagingSegmentManager(name=f"{state_id}_segments")
+                        current_state.segment_manager = segment_manager
+                    
+                    # Allocate a code segment for this state
+                    code_segment = segment_manager.allocate_memory_segment(
+                        name=f"{state_id}_main_code", 
+                        byte_size=0x100000,  # 1MB should be plenty for generated instructions
+                        memory_type=Configuration.Memory_types.CODE,
+                        alignment_bits=12  # 4KB alignment
+                    )
+                    current_state.current_code_block = code_segment
+                    logger.debug(f"Created non-paging code segment {code_segment.name} for state {state_id}")
+                
+                # Add a comment to mark the start of test body (without AsmLogger dependency)
+                from Arrow.Tool.asm_blocks import AsmUnit
+                comment_unit = AsmUnit(comment=f"========================= state {state_id} - TEST BODY - start =====================")
+                current_state.current_code_block.asm_units_list.append(comment_unit)
             privilege_level = current_state.privilege_level
         
             per_state_scenario_count[state_id] = (1, int(Configuration.Knobs.Template.scenario_count)) # TODO:: replace this with per state knob state_manager.scenario_count

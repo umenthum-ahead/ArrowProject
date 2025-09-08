@@ -50,34 +50,36 @@ def get_output(location, segment_name=None):
 
 
 def generate_asm_from_AsmUnits(instruction_segments):
-    asm_code = ""
-    asm_code += f".global _start\n"
+    asm_code_lines = []
+    asm_code_lines.append(".global _start")
 
     for segment in instruction_segments:
 
         asm_code_counter = 0
-        tmp_asm_code = ""
+        tmp_asm_lines = []
 
         segment_name = segment.name
-        tmp_asm_code += get_output(location="text_segment_header", segment_name=segment_name)
-        tmp_asm_code += f".global {segment_name}\n"
+        # Split the output from get_output and add each line
+        header_output = get_output(location="text_segment_header", segment_name=segment_name)
+        tmp_asm_lines.extend(header_output.rstrip('\n').split('\n'))
+        tmp_asm_lines.append(f".global {segment_name}")
         if Configuration.Architecture.riscv:
-            tmp_asm_code += f".align 3       {get_comment_mark()} Align to 4-byte boundary\n"
-        tmp_asm_code += f"{segment_name}:\n"
+            tmp_asm_lines.append(f".align 3       {get_comment_mark()} Align to 4-byte boundary")
+        tmp_asm_lines.append(f"{segment_name}:")
 
         # Access or initialize the singleton variable
         is_first_segment = SingletonManager.get("is_first_segment", default=True)
         if is_first_segment:
             asm_code_counter += 1
-            tmp_asm_code += f"_start:\n"
+            tmp_asm_lines.append("_start:")
             SingletonManager.set("is_first_segment", False)
 
         # Process each asm unit in the segment
         for asm_unit in segment.asm_units_list:
             asm_code_counter += 1
-            tmp_asm_code += f"    {asm_unit}\n"
+            tmp_asm_lines.append(f"    {asm_unit}")
 
-        tmp_asm_code += "\n"
+        tmp_asm_lines.append("")  # Empty line
 
         # planting  .text segment only if some entries exist in that section
 
@@ -85,8 +87,7 @@ def generate_asm_from_AsmUnits(instruction_segments):
         if asm_code_counter == 0:
             skip_text_section = True
         elif asm_code_counter == 1:
-            lines = tmp_asm_code.split("\n")
-            lines = [line for line in lines if line.strip()]
+            lines = [line for line in tmp_asm_lines if line.strip()]
             if len(lines) == 4:
                 # Some text sections contain only labels like the below - skipping them
                 '''
@@ -97,18 +98,17 @@ def generate_asm_from_AsmUnits(instruction_segments):
                 skip_text_section = True
 
         if skip_text_section:
-            asm_code += f"{get_comment_mark()} No code on {segment_name} segment. skipping .text section\n\n"
+            asm_code_lines.append(f"{get_comment_mark()} No code on {segment_name} segment. skipping .text section")
+            asm_code_lines.append("")
         else:
-            asm_code += tmp_asm_code
-        asm_code_counter = 0
-        tmp_asm_code = ""
+            asm_code_lines.extend(tmp_asm_lines)
 
-    return asm_code
+    return asm_code_lines
 
 
 def generate_data_from_DataUnits(data_segments):
 
-    data_code = ""
+    data_code_lines = []
 
     for segment in data_segments:
 
@@ -133,11 +133,9 @@ def generate_data_from_DataUnits(data_segments):
 
             assembly_code = generate_random_data_section(data_unit_list, segment_size)
             for line in assembly_code:
-                tmp_data_code += f"{line}\n"
+                data_code_lines.append(line)
 
-            data_code += tmp_data_code
             data_code_counter = 0
-            tmp_data_code = ""
             continue
 
         if segment.memory_type != Configuration.Memory_types.DATA_PRESERVE and segment.memory_type != Configuration.Memory_types.STACK:
@@ -216,10 +214,12 @@ def generate_data_from_DataUnits(data_segments):
 
         # planting  .data segment only if some entries exist in that section
         if data_code_counter != 0:
-            tmp_data_code += "\n"
-            data_code += tmp_data_code
+            # Split tmp_data_code into lines and add to data_code_lines
+            for line in tmp_data_code.split('\n'):
+                if line.strip():  # Skip empty lines
+                    data_code_lines.append(line)
         else:
-            data_code += f"{get_comment_mark()} No uninitialized data on {segment_name} data segment. skipping .data section\n\n"
+            data_code_lines.append(f"{get_comment_mark()} No uninitialized data on {segment_name} data segment. skipping .data section")
             # tmp_data_code += f".space {segment_size}\n"
         data_code_counter = 0
         tmp_data_code = ""
@@ -297,7 +297,7 @@ def generate_data_from_DataUnits(data_segments):
         # keep the above as is, and dont change to something like the below! regardless to the extra "
         # data_code += f"test_pass_str: .string \"** TEST PASSED OK **\"\n"
 
-    return data_code
+    return data_code_lines
 
 
 def generate_assembly():
@@ -324,6 +324,32 @@ def generate_assembly():
                         Configuration.Memory_types.DATA_PRESERVE, 
                         Configuration.Memory_types.STACK]))
 
+    # For non-paging mode, also collect segments from state managers
+    if not Configuration.Knobs.Memory.paging_enabled.get_value():
+        from Arrow.Tool.state_management import get_state_manager
+        state_manager = get_state_manager()
+        logger.debug("Paging disabled - collecting segments from state managers")
+        
+        # Collect segments from all states
+        for state_id in state_manager.get_all_states():
+            state = state_manager.states_dict[state_id]
+            segment_manager = getattr(state, 'segment_manager', None)
+            if segment_manager:
+                # Get code segments from this state's segment manager
+                code_segments = segment_manager.get_segments(
+                    pool_type=[Configuration.Memory_types.BSP_BOOT_CODE,
+                               Configuration.Memory_types.BOOT_CODE,
+                               Configuration.Memory_types.CODE])
+                all_code_segments.extend(code_segments)
+                logger.debug(f"Found {len(code_segments)} code segments from state {state_id}")
+                
+                # Get data segments from this state's segment manager  
+                data_segments = segment_manager.get_segments(
+                    pool_type=[Configuration.Memory_types.DATA_SHARED, 
+                               Configuration.Memory_types.DATA_PRESERVE, 
+                               Configuration.Memory_types.STACK])
+                all_data_segments.extend(data_segments)
+
     # Identify the BSP_BOOT_CODE in the all_code_segments list and move it to the start so it will be the first one in the asm file next to the _start label
     for i, code_segment in enumerate(all_code_segments):
         if code_segment.memory_type == Configuration.Memory_types.BSP_BOOT_CODE:
@@ -337,7 +363,13 @@ def generate_assembly():
 
 
     # Combine the instruction and data parts
-    full_asm_code = asm_code + "\n" + data_code
+    # asm_code is now a list, data_code should be a list too, but let's handle both cases
+    if isinstance(data_code, str):
+        data_code_lines = data_code.split('\n') if data_code else []
+    else:
+        data_code_lines = data_code
+    
+    full_asm_code_lines = asm_code + [""] + data_code_lines
 
     config_manager = get_config_manager()
     output_dir = config_manager.get_value('output_dir_path')

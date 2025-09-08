@@ -33,6 +33,9 @@ class State(ABC):
     def __repr__(self):
         pass
 
+    def get_segment_manager(self):
+        return self.segment_manager
+
     @staticmethod
     def create_state(state_name: str, state_id: int, register_manager: RegisterManager, **kwargs) -> 'State':
         """
@@ -206,7 +209,9 @@ class ARMState(State):
                 f"current_code_block={self.current_code_block}, "
                 #f"enabled_page_tables={self.enabled_page_tables}, "
                 f"register_manager={self.register_manager})")
-
+    
+    def get_segment_manager(self):
+        return self.current_el_page_table.segment_manager
 
 class State_manager:
     """
