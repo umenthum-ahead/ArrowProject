@@ -466,7 +466,7 @@ def generate_random_data_section(data_unit_list, segment_size):
         labels_at_current_offset = []
         
         while remaining_units and remaining_units[0].segment_offset == current_offset:
-            labels_at_current_offset.append(remaining_units.pop(0).name)
+            labels_at_current_offset.append(remaining_units.pop(0).memory_block_id)
         
         # Output any labels at this position
         for label in labels_at_current_offset:
