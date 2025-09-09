@@ -50,8 +50,7 @@ def end_test_asm_convention(test_pass: bool = True, status_code=0) -> None:
         AsmLogger.asm(f"hlt", comment="Halt the processor")
     elif Configuration.Architecture.riscv:
         # Calculate the value to write to `tohost`
-        zero_bit = 0 if test_pass else 1
-        data_value = (status_code << 1) | zero_bit  # Data[31:1] = status_code, Data[0] = 1 or 0
+        data_value = 1 if test_pass else -1
 
         # Generate the assembly code
         tohost_memory = get_tohost_memory()
