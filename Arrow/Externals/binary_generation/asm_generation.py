@@ -144,7 +144,10 @@ def generate_data_from_DataUnits(data_segments):
         # sort the data_unit_list by thier segment_offset, to avoid having a .org backward
         data_unit_list = sorted(data_unit_list, key=lambda x: x.segment_offset)
 
+        # Track current position in the segment to avoid backwards .org directives
+        current_position = 0
         first_data_unit = True
+        
         for data_unit in data_unit_list:
             name = data_unit.name if data_unit.name is not None else 'no-name'
             # unique_label = data_dict.get('unique_label', 'None')
@@ -169,7 +172,14 @@ def generate_data_from_DataUnits(data_segments):
                 break_lines_between_different_data_units = "" if first_data_unit else "\n"
                 first_data_unit = False
                 
-                tmp_data_code += f".org {hex(segment_offset)}\n"
+                # Only emit .org if we need to move forward
+                if segment_offset > current_position:
+                    tmp_data_code += f".org {hex(segment_offset)}\n"
+                    current_position = segment_offset
+                elif segment_offset < current_position:
+                    # Log a warning if we're trying to go backwards
+                    print(f"WARNING: Skipping backwards .org to {hex(segment_offset)} (current position: {hex(current_position)}) for {unique_label}")
+                # If segment_offset == current_position, no .org needed
                 if alignment is not None:
                     tmp_data_code += f".align {alignment}\n"
                 #tmp_data_code += f"{break_lines_between_different_data_units}{unique_label}:\n"
@@ -201,6 +211,9 @@ def generate_data_from_DataUnits(data_segments):
                             tmp_data_code += f"{break_lines_between_same_data_unit}    .byte 0x{value:02x}  {get_comment_mark()} 1 byte\n"
                 else:
                     raise ValueError('Unsupported Architecture')
+                
+                # Update current position after emitting data
+                current_position = segment_offset + byte_size
 
                 # # Initialize data with a value in the .data section
                 # if Configuration.Architecture.x86:
