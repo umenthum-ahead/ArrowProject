@@ -61,7 +61,7 @@ class MemoryBlock:
         config_manager = get_config_manager()
         state_manager = get_state_manager()
         curr_state = state_manager.get_active_state()
-        curr_segment_manager = curr_state.segment_manager
+        curr_segment_manager = curr_state.get_segment_manager()
 
         MemoryBlock._memory_block_initial_seed_id += 1
         self.name = name if name is not None else f"mem{MemoryBlock._memory_block_initial_seed_id}"
@@ -146,12 +146,7 @@ class MemoryBlock:
                                                     alignment=self.alignment,
                                                     cross_core=self.cross_core)
 
-        # For non-paging segment manager, use a simple key (for paging, this would be page_table_name)
-        if hasattr(curr_segment_manager, 'page_table') and curr_segment_manager.page_table:
-            page_table_key = curr_segment_manager.page_table.page_table_name
-        else:
-            # For non-paging segment manager, use the segment manager name
-            page_table_key = curr_segment_manager.name
+        page_table_key = curr_segment_manager.get_name()
         
         self.data_unit = per_page_table_data_units[page_table_key]
         self.memory_segment_name = self.data_unit.memory_segment_id
@@ -225,12 +220,8 @@ class MemoryBlock:
     def __str__(self):
         if self.cross_core:
             curr_state = get_current_state()
-            curr_segment_manager = curr_state.segment_manager
-            # For non-paging segment manager, use the segment manager name as key
-            if hasattr(curr_segment_manager, 'page_table') and curr_segment_manager.page_table:
-                page_table_key = curr_segment_manager.page_table.page_table_name
-            else:
-                page_table_key = curr_segment_manager.name
+            curr_segment_manager = curr_state.get_segment_manager()
+            page_table_key = curr_segment_manager.get_name()
             return self.cross_page_table_blocks[page_table_key].memory_block_str
         else:
             return self.memory_block_str
@@ -239,12 +230,8 @@ class MemoryBlock:
     def get_address(self):
         if self.cross_core:
             curr_state = get_current_state()
-            curr_segment_manager = curr_state.segment_manager
-            # For non-paging segment manager, use the segment manager name as key
-            if hasattr(curr_segment_manager, 'page_table') and curr_segment_manager.page_table:
-                page_table_key = curr_segment_manager.page_table.page_table_name
-            else:
-                page_table_key = curr_segment_manager.name
+            curr_segment_manager = curr_state.get_segment_manager()
+            page_table_key = curr_segment_manager.get_name()
             return self.cross_page_table_blocks[page_table_key]._address
         else:
             return self._address
@@ -255,7 +242,7 @@ class MemoryBlock:
     def get_label(self):
         if self.cross_core:
             curr_state = get_current_state()
-            curr_segment_manager = curr_state.segment_manager
+            curr_segment_manager = curr_state.get_segment_manager()
             # For non-paging segment manager, use the segment manager name as key
             if hasattr(curr_segment_manager, 'page_table') and curr_segment_manager.page_table:
                 page_table_key = curr_segment_manager.page_table.page_table_name

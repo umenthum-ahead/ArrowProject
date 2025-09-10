@@ -47,7 +47,7 @@ class Memory:
         config_manager = get_config_manager()
         state_manager = get_state_manager()
         curr_state = state_manager.get_active_state()
-        curr_segment_manager = curr_state.segment_manager
+        curr_segment_manager = curr_state.get_segment_manager()
 
         Memory._memory_initial_seed_id += 1
         self.name = name if name is not None else f"mem{Memory._memory_initial_seed_id}"

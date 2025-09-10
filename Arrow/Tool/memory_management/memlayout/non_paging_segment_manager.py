@@ -19,7 +19,7 @@ class NonPagingIntervalTracker:
         self.base_address = base_address
         self.size = size
         self.next_offset = 0  # Simple sequential allocation
-    
+
     def find_region(self, byte_size: int, alignment: int = None) -> tuple:
         """
         Find an available memory region of the specified size.
@@ -68,7 +68,10 @@ class NonPagingSegmentManager:
         
         # Simple address allocation - start from a base address and increment
         self.next_address = 0x10000000  # Start at 256MB
-        
+
+    def get_name(self):
+        return self.name
+
     def allocate_memory_segment(self, name: str, byte_size: int, memory_type: Configuration.Memory_types, 
                               alignment_bits: int = None, VA_eq_PA: bool = False, force_address: int = None, 
                               exclusive_segment: bool = True) -> MemorySegment:

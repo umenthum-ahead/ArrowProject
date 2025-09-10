@@ -23,7 +23,6 @@ def get_last_user_context():
     test_stage_path = normalize_path(arrow_tool_root + '/Tool/stages/test_stage')
     memory_segments_path = normalize_path(arrow_tool_root + '/Tool/memory_management/memory_segments.py') # initial code label is create there
     exception_tables_path = normalize_path(arrow_tool_root + '/Tool/exception_management/__init__.py')
-    non_paging_segment_manager_path = normalize_path(arrow_tool_root + '/Tool/memory_management/memlayout/non_paging_segment_manager.py')
 
     # Capture the stack once as the below code might go over it twice, and it has performance penalty
     stack_snapshot = inspect.stack()
@@ -58,30 +57,15 @@ def get_last_user_context():
     # Fallback: check for first instance of Tool code like boot, scenario wrapper and such (e.g., test_stage)
     for frame_info in stack_snapshot:
         filename_abs = normalize_path(frame_info.filename)
-        # Check for tool-level paths (handle both with and without the /arrow/ middle segment)
-        if (('/tool/stages/test_stage' in filename_abs) or 
-            ('/tool/memory_management/memory_segments.py' in filename_abs) or 
-            ('/tool/exception_management/__init__.py' in filename_abs) or 
-            ('/tool/memory_management/memlayout/non_paging_segment_manager.py' in filename_abs)):
+        # Check for tool-level paths
+        if (test_stage_path in filename_abs) or (memory_segments_path in filename_abs) or (exception_tables_path in filename_abs):
             filename_abs = normalize_path(frame_info.filename)
             shortened_path = "/".join(filename_abs.split(os.sep)[-2:])
             return filename_abs, shortened_path, frame_info.lineno
 
     # Debug: print paths being checked and stack frames  
-    print(f"DEBUG: Checking paths:")
-    print(f"DEBUG: test_stage_path = {test_stage_path}")
-    print(f"DEBUG: memory_segments_path = {memory_segments_path}")
-    print(f"DEBUG: exception_tables_path = {exception_tables_path}")
-    print(f"DEBUG: non_paging_segment_manager_path = {non_paging_segment_manager_path}")
-    print(f"DEBUG: Stack frames:")
     for i, frame_info in enumerate(stack_snapshot):
         normalized_filename = normalize_path(frame_info.filename)
-        print(f"DEBUG: Frame {i}: {normalized_filename}")
-        # Test each path manually  
-        print(f"DEBUG:   test_stage_path in filename? {test_stage_path in normalized_filename}")
-        print(f"DEBUG:   memory_segments_path in filename? {memory_segments_path in normalized_filename}")
-        print(f"DEBUG:   exception_tables_path in filename? {exception_tables_path in normalized_filename}")
-        print(f"DEBUG:   non_paging_segment_manager_path in filename? {non_paging_segment_manager_path in normalized_filename}")
 
     raise ValueError("Inspect failed to find last_user_context")
 

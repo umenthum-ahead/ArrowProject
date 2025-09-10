@@ -50,36 +50,34 @@ def get_output(location, segment_name=None):
 
 
 def generate_asm_from_AsmUnits(instruction_segments):
-    asm_code_lines = []
-    asm_code_lines.append(".global _start")
+    asm_code = ""
+    asm_code += f".global _start\n"
 
     for segment in instruction_segments:
 
         asm_code_counter = 0
-        tmp_asm_lines = []
+        tmp_asm_code = ""
 
         segment_name = segment.name
-        # Split the output from get_output and add each line
-        header_output = get_output(location="text_segment_header", segment_name=segment_name)
-        tmp_asm_lines.extend(header_output.rstrip('\n').split('\n'))
-        tmp_asm_lines.append(f".global {segment_name}")
+        tmp_asm_code += get_output(location="text_segment_header", segment_name=segment_name)
+        tmp_asm_code += f".global {segment_name}\n"
         if Configuration.Architecture.riscv:
-            tmp_asm_lines.append(f".align 3       {get_comment_mark()} Align to 4-byte boundary")
-        tmp_asm_lines.append(f"{segment_name}:")
+            tmp_asm_code += f".align 3       {get_comment_mark()} Align to 4-byte boundary\n"
+        tmp_asm_code += f"{segment_name}:\n"
 
         # Access or initialize the singleton variable
         is_first_segment = SingletonManager.get("is_first_segment", default=True)
         if is_first_segment:
             asm_code_counter += 1
-            tmp_asm_lines.append("_start:")
+            tmp_asm_code += f"_start:\n"
             SingletonManager.set("is_first_segment", False)
 
         # Process each asm unit in the segment
         for asm_unit in segment.asm_units_list:
             asm_code_counter += 1
-            tmp_asm_lines.append(f"    {asm_unit}")
+            tmp_asm_code += f"    {asm_unit}\n"
 
-        tmp_asm_lines.append("")  # Empty line
+        tmp_asm_code += "\n"
 
         # planting  .text segment only if some entries exist in that section
 
@@ -87,7 +85,8 @@ def generate_asm_from_AsmUnits(instruction_segments):
         if asm_code_counter == 0:
             skip_text_section = True
         elif asm_code_counter == 1:
-            lines = [line for line in tmp_asm_lines if line.strip()]
+            lines = tmp_asm_code.split("\n")
+            lines = [line for line in lines if line.strip()]
             if len(lines) == 4:
                 # Some text sections contain only labels like the below - skipping them
                 '''
@@ -98,17 +97,18 @@ def generate_asm_from_AsmUnits(instruction_segments):
                 skip_text_section = True
 
         if skip_text_section:
-            asm_code_lines.append(f"{get_comment_mark()} No code on {segment_name} segment. skipping .text section")
-            asm_code_lines.append("")
+            asm_code += f"{get_comment_mark()} No code on {segment_name} segment. skipping .text section\n\n"
         else:
-            asm_code_lines.extend(tmp_asm_lines)
+            asm_code += tmp_asm_code
+        asm_code_counter = 0
+        tmp_asm_code = ""
 
-    return asm_code_lines
+    return asm_code
 
 
 def generate_data_from_DataUnits(data_segments):
 
-    data_code_lines = []
+    data_code = ""
 
     for segment in data_segments:
 
@@ -133,9 +133,11 @@ def generate_data_from_DataUnits(data_segments):
 
             assembly_code = generate_random_data_section(data_unit_list, segment_size)
             for line in assembly_code:
-                data_code_lines.append(line)
+                tmp_data_code += f"{line}\n"
 
+            data_code += tmp_data_code
             data_code_counter = 0
+            tmp_data_code = ""
             continue
 
         if segment.memory_type != Configuration.Memory_types.DATA_PRESERVE and segment.memory_type != Configuration.Memory_types.STACK:
@@ -178,7 +180,7 @@ def generate_data_from_DataUnits(data_segments):
                     current_position = segment_offset
                 elif segment_offset < current_position:
                     # Log a warning if we're trying to go backwards
-                    print(f"WARNING: Skipping backwards .org to {hex(segment_offset)} (current position: {hex(current_position)}) for {unique_label}")
+                    raise RuntimeError(f"Skipping backwards .org to {hex(segment_offset)} (current position: {hex(current_position)}) for {unique_label}")
                 # If segment_offset == current_position, no .org needed
                 if alignment is not None:
                     tmp_data_code += f".align {alignment}\n"
@@ -227,12 +229,10 @@ def generate_data_from_DataUnits(data_segments):
 
         # planting  .data segment only if some entries exist in that section
         if data_code_counter != 0:
-            # Split tmp_data_code into lines and add to data_code_lines
-            for line in tmp_data_code.split('\n'):
-                if line.strip():  # Skip empty lines
-                    data_code_lines.append(line)
+            tmp_data_code += "\n"
+            data_code += tmp_data_code
         else:
-            data_code_lines.append(f"{get_comment_mark()} No uninitialized data on {segment_name} data segment. skipping .data section")
+            data_code += f"{get_comment_mark()} No uninitialized data on {segment_name} data segment. skipping .data section\n\n"
             # tmp_data_code += f".space {segment_size}\n"
         data_code_counter = 0
         tmp_data_code = ""
@@ -310,7 +310,7 @@ def generate_data_from_DataUnits(data_segments):
         # keep the above as is, and dont change to something like the below! regardless to the extra "
         # data_code += f"test_pass_str: .string \"** TEST PASSED OK **\"\n"
 
-    return data_code_lines
+    return data_code
 
 
 def generate_assembly():
@@ -376,13 +376,7 @@ def generate_assembly():
 
 
     # Combine the instruction and data parts
-    # asm_code is now a list, data_code should be a list too, but let's handle both cases
-    if isinstance(data_code, str):
-        data_code_lines = data_code.split('\n') if data_code else []
-    else:
-        data_code_lines = data_code
-    
-    full_asm_code_lines = asm_code + [""] + data_code_lines
+    full_asm_code = asm_code + "\n" + data_code
 
     config_manager = get_config_manager()
     output_dir = config_manager.get_value('output_dir_path')
