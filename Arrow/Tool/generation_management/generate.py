@@ -11,6 +11,7 @@ from Arrow.Utils.configuration_management import Configuration, get_config_manag
 from Arrow.Externals.db_manager.models import get_instruction_db
 from Arrow.Tool.register_management.register import Register
 from Arrow.Tool.memory_management.memory_operand import Memory
+from Arrow.Tool.asm_libraries.label import LabelImm
 
 from peewee import Expression, fn, SQL
 
@@ -162,7 +163,8 @@ def generate(
                     print(f"        ⚠️   Skipping instruction!!! instruction {candidate_instruction.syntax} is not parsed correctly yet.")
             elif hasattr(candidate_instruction, 'random_generate'):
                 # For other architectures, use random_generate or just accept the instruction
-                if candidate_instruction.random_generate:
+                # If require_random is False, accept any instruction regardless of random_generate flag
+                if not require_random or candidate_instruction.random_generate:
                     selected_instruction = candidate_instruction
                     break
                 elif instruction_debug_prints:
@@ -258,6 +260,10 @@ def matches_operand_requirement(operands_list, operand, role):
         elif isinstance(operand, Memory):
             # For memory operands, look for memory-related types
             if 'mem' in op_type.lower() or op_type == 'offset_plus_basereg':
+                return True
+        elif isinstance(operand, LabelImm):
+            # LabelImm should match offset_imm or label types for branch instructions
+            if op_type in ['offset_imm', 'label']:
                 return True
     
     return False

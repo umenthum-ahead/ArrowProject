@@ -5,6 +5,7 @@ from Arrow.Tool.generation_management.generate import GeneratedInstruction
 from Arrow.Tool.generation_management.utils import map_inputs_to_operands
 from Arrow.Tool.state_management import get_state_manager
 from Arrow.Tool.memory_management.memory_operand import Memory
+from Arrow.Tool.asm_libraries.label import LabelImm
 import ast
 
 def generate_riscv(
@@ -68,6 +69,10 @@ def generate_riscv(
         if src_location == op_location:
             if isinstance(src, Memory):
                 eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg)
+            elif isinstance(src, LabelImm):
+                # Handle LabelImm objects for branch instructions
+                # LabelImm should be used directly as the label/offset
+                eval_operand = src
             else:
                 # Check if operand type matches what src actually is
                 if operand['type'] == "reg":
@@ -132,7 +137,13 @@ def generate_riscv(
                     base_reg = current_state.register_manager.get(reg_type="gpr")
                     eval_operand = f"0({base_reg})"
         elif operand['type'] == "offset_imm":
-            eval_operand = random.randint(0, 100)
+            # Check if src is a LabelImm that should be used for this offset
+            # This handles the case where src_location might be None or not match this position
+            if src and isinstance(src, LabelImm) and operand.get('role') == 'src':
+                eval_operand = src
+            else:
+                eval_operand = random.randint(0, 100)
+            #eval_operand = random.randint(0, 100)
         else:
             raise ValueError(f"invalid operand type {operand['type']} at selected instruction {selected_instruction.mnemonic}")
 

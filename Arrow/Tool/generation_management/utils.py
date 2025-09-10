@@ -106,11 +106,27 @@ def map_inputs_to_operands(selected_instruction, src, dest):
     src_location = None
     dest_location = None
     if src is not None:
-        if isinstance(src, Memory): src.type = "mem"
+        if isinstance(src, Memory): 
+            src.type = "mem"
+        if isinstance(src, LabelImm):
+            src.type = "offset_imm"
         src_locations = find_possible_locations(selected_instruction.operands, role="src", type=src.type)
         src_location = random.choice(src_locations)
     if dest is not None:
-        if isinstance(dest, Memory): dest.type = "mem"
+        if isinstance(dest, Memory): 
+            dest.type = "mem"
+        # Handle LabelImm objects which don't have a type attribute
+        #if dest.__class__.__name__ == 'LabelImm':
+        #    # For labels/immediates, look for offset_imm or label type operands
+        #    dest_locations = find_possible_locations(selected_instruction.operands, role="dest", type="offset_imm")
+        #    if not dest_locations:
+        #        # If no offset_imm, try label type
+        #        dest_locations = find_possible_locations(selected_instruction.operands, role="dest", type="label")
+        #    if not dest_locations:
+        #        # If still no match, try generic imm type
+        #        dest_locations = find_possible_locations(selected_instruction.operands, role="dest", type="imm")
+        #else:
+        #    dest_locations = find_possible_locations(selected_instruction.operands, role="dest", type=dest.type)
         dest_locations = find_possible_locations(selected_instruction.operands, role="dest", type=dest.type)
         dest_location = random.choice(dest_locations)
     if dest is not None and src is not None:
