@@ -34,10 +34,10 @@ This is the nue-core project containing Arrow, an architecture-agnostic random i
 
 ## Testing
 
-### Arrow Development Agent
-- **Specialized Agent**: Use the Arrow Development Agent in `arrow_agent/` for comprehensive Arrow testing support
-- **Agent Usage**: `python -m arrow_agent --smoke-test` for full smoke test suite
-- **Environment Validation**: `python -m arrow_agent --validate` to check prerequisites
+### Arrow MCP Server
+- **MCP Integration**: Arrow testing is provided via MCP server located in `tfm/nhtsa/arrow_agent/`
+- **Available through Claude Code**: Use MCP tools `arrow_run_test`, `arrow_run_smoke_tests`, `arrow_analyze_failure`
+- **Environment Validation**: Use `arrow_validate_env` MCP tool to check prerequisites
 
 ### Test Execution
 - **Smoke test command**: `ahc_regress --dut whisper --keep -l val/common/testlists/arrow_smoke_examples.yaml --local --no_compress`
@@ -102,56 +102,32 @@ This is the nue-core project containing Arrow, an architecture-agnostic random i
 - **x86/ARM**: Maintain existing functionality, provide meaningful errors for unsupported RISC-V features
 - Use external tools like `pagegen` for low-level memory management
 
-## Arrow Development Agent
-The project includes a specialized Arrow Development Agent located in `arrow_agent/` directory. This agent provides:
+## Arrow MCP Server Integration
+Arrow testing and development support is provided through an MCP (Model Context Protocol) server located in `tfm/nhtsa/arrow_agent/` in the main repo.
+
+### Available MCP Tools
+- **`arrow_validate_env`**: Validate Arrow development environment prerequisites
+- **`arrow_run_test`**: Run a specific Arrow test
+- **`arrow_run_smoke_tests`**: Run all Arrow smoke tests
+- **`arrow_analyze_failure`**: Analyze test failures with detailed diagnostics including GCC/assembler errors
 
 ### Key Features
-- **Test Execution**: Automated smoke test and specific test execution
-- **Result Analysis**: Comprehensive test result parsing and failure analysis
-- **Template Development**: Template creation, analysis, and recommendations
+- **Test Execution**: Automated smoke test and specific test execution via MCP
+- **Enhanced Failure Analysis**: Automatic GCC/assembler diagnostic capture for build failures
 - **Environment Validation**: Prerequisite checking and setup guidance
-- **Multi-Architecture Support**: x86, ARM, and RISC-V development assistance
+- **Direct Claude Code Integration**: No command-line interface needed - all functionality available through MCP tools
 
-### Usage Examples
-```python
-from arrow_agent import ArrowAgent
+### MCP Server development
+- CRITICAL NEVER work around an issue with an agent or MCP that is run locally (we have control over the source code). It is IMPERATIVE that we fix the root issue to improve the quality and usefulness of the agent/MCP server.
+- The user must be prompted to restart the server after a change is made is made to the server source code.
+- never grep the logs, use an MCP agent to get the necessary info. fix/enhance the agent if necessary
 
-# Initialize agent
-agent = ArrowAgent()
+The MCP server handles all the complexity and provides detailed results directly in the Claude Code interface.
 
-# Validate environment
-is_valid, errors = agent.validate_environment()
-
-# Run smoke tests
-results = agent.run_smoke_tests()
-
-# Create new template
-agent.create_new_template("my_template", reference_template="direct_template.py")
-
-# Get development guidance
-guidance = agent.get_development_guidance("template_creation")
-```
-
-### Command Line Interface
-```bash
-# Validate environment
-python -m arrow_agent --validate
-
-# Run smoke tests
-python -m arrow_agent --smoke-test
-
-# Run specific test
-python -m arrow_agent --test arrow_direct
-
-# Show status
-python -m arrow_agent --status
-```
-
-### Integration with Claude Code
-The agent is designed for use with Claude Code's Task tool:
-- **Agent Type**: "arrow-dev"
-- **Capabilities**: Test execution, analysis, template development, debugging support
-- **Isolation**: All agent files contained in `arrow_agent/` directory to avoid repo conflicts
+### MCP Server Location
+- **Path**: `tfm/nhtsa/arrow_agent/mcp_server.py`
+- **Configuration**: Automatically loaded when Claude Code starts with MCP support
+- **No manual setup required**: The server is integrated into the Claude Code environment
 
 ## Key Files to Understand
 - `Arrow/main.py` - Entry point
@@ -161,3 +137,4 @@ The agent is designed for use with Claude Code's Task tool:
 - `Arrow/Tool/register_management/register_manager.py` - Register management
 - `arrow_agent/` - Arrow Development Agent (isolated directory)
 - Always output analysis report files to the test run directory, not the source directory.
+
