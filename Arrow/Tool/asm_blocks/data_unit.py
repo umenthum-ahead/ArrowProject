@@ -19,10 +19,14 @@ def get_last_user_context():
 
     arrow_root = normalize_path(config_manager.get_value('base_dir_path'))
     # The base_dir_path points to Arrow/Arrow, but Tool is at Arrow/Tool level, so we need to go up one level
-    arrow_tool_root = os.path.dirname(arrow_root)  # Go up from Arrow/Arrow to Arrow (where Tool directory is)
-    test_stage_path = normalize_path(arrow_tool_root + '/Tool/stages/test_stage')
-    memory_segments_path = normalize_path(arrow_tool_root + '/Tool/memory_management/memory_segments.py') # initial code label is create there
-    exception_tables_path = normalize_path(arrow_tool_root + '/Tool/exception_management/__init__.py')
+    #arrow_tool_root = os.path.dirname(arrow_root)  # Go up from Arrow/Arrow to Arrow (where Tool directory is)
+    #test_stage_path = normalize_path(arrow_tool_root + '/Tool/stages/test_stage')
+    #memory_segments_path = normalize_path(arrow_tool_root + '/Tool/memory_management/memory_segments.py') # initial code label is create there
+    #exception_tables_path = normalize_path(arrow_tool_root + '/Tool/exception_management/__init__.py')
+    test_stage_path = 'arrow/tool/stages/test_stage'
+    memory_segments_path = 'arrow/tool/memory_management/memory_segments.py' # initial code label is create there
+    exception_tables_path = 'arrow/tool/exception_management/__init__.py'
+    state_management_path = 'arrow/tool/state_management'  # Added for state initialization context
 
     # Capture the stack once as the below code might go over it twice, and it has performance penalty
     stack_snapshot = inspect.stack()
@@ -58,15 +62,13 @@ def get_last_user_context():
     for frame_info in stack_snapshot:
         filename_abs = normalize_path(frame_info.filename)
         # Check for tool-level paths
-        if (test_stage_path in filename_abs) or (memory_segments_path in filename_abs) or (exception_tables_path in filename_abs):
+        if (test_stage_path in filename_abs) or (memory_segments_path in filename_abs) or (exception_tables_path in filename_abs) or (state_management_path in filename_abs):
             filename_abs = normalize_path(frame_info.filename)
             shortened_path = "/".join(filename_abs.split(os.sep)[-2:])
             return filename_abs, shortened_path, frame_info.lineno
 
-    # Debug: print paths being checked and stack frames  
-    for i, frame_info in enumerate(stack_snapshot):
-        normalized_filename = normalize_path(frame_info.filename)
-
+    # If we reach here, we couldn't find any matching context
+    # This shouldn't happen in normal operation
     raise ValueError("Inspect failed to find last_user_context")
 
 

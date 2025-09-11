@@ -106,14 +106,19 @@ class RISCVState(State):
             # Use non-paging segment manager for bare-metal case
             self.segment_manager = NonPagingSegmentManager(name=f"riscv_bare_metal_{self.state_name}")
             
-            # Create a basic code segment for AsmLogger if current_code_block is None
-            if self.current_code_block is None:
-                self.current_code_block = self.segment_manager.allocate_memory_segment(
-                    name=f"{self.state_name}_default_code",
+            # Create multiple CODE segments like paging mode does
+            # This ensures test_body.py has segments to branch between
+            code_segment_count = Configuration.Knobs.Memory.code_segment_count.get_value()
+            for i in range(code_segment_count):
+                code_segment = self.segment_manager.allocate_memory_segment(
+                    name=f"{self.state_name}_code_segment_{i}",
                     byte_size=0x1000,  # 4KB default
                     memory_type=Configuration.Memory_types.CODE,
                     exclusive_segment=False
                 )
+                # Set the first segment as current_code_block if not already set
+                if i == 0 and self.current_code_block is None:
+                    self.current_code_block = code_segment
             
             # Create default DATA segments to prevent empty sequence errors
             self.segment_manager.allocate_memory_segment(
@@ -126,6 +131,21 @@ class RISCVState(State):
                 name=f"{self.state_name}_default_data_preserve",
                 byte_size=0x1000,  # 4KB default
                 memory_type=Configuration.Memory_types.DATA_PRESERVE,
+                exclusive_segment=False
+            )
+            # Create STACK segment - needed by test_boot.py
+            self.segment_manager.allocate_memory_segment(
+                name=f"{self.state_name}_stack_segment",
+                byte_size=0x2000,  # 8KB to accommodate test_boot.py's 4KB allocation
+                memory_type=Configuration.Memory_types.STACK,
+                exclusive_segment=False  # Must be False so allocate_data_memory can find it with non_exclusive_only=True
+            )
+            
+            # Create BOOT_CODE segment - required by test_boot.py (expects exactly one)
+            self.segment_manager.allocate_memory_segment(
+                name=f"{self.state_name}_boot_code",
+                byte_size=0x1000,  # 4KB default
+                memory_type=Configuration.Memory_types.BOOT_CODE,
                 exclusive_segment=False
             )
 

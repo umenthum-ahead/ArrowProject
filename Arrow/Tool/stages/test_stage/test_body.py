@@ -51,10 +51,20 @@ def do_scenario(current_scenario: Optional[int], max_scenario:Optional[int]):
     scenario_manager = get_scenario_manager()
 
     available_blocks = segment_manager.get_segments(pool_type=Configuration.Memory_types.CODE, non_exclusive_only=True)
+    logger.debug(f"Available CODE blocks: {len(available_blocks)}, blocks: {[b.name for b in available_blocks]}")
+    logger.debug(f"Current code block: {current_state.current_code_block.name if current_state.current_code_block else 'None'}")
     # Filter the list to exclude the current code block
     available_blocks_without_current = [block for block in available_blocks if block != current_state.current_code_block]
+    logger.debug(f"After filtering out current: {len(available_blocks_without_current)} blocks remaining")
     # Randomly select from the filtered list
-    selected_block = choice.choice(values=available_blocks_without_current)
+    if not available_blocks_without_current:
+        logger.error(f"No blocks available for branching! Available: {[b.name for b in available_blocks]}, Current: {current_state.current_code_block.name if current_state.current_code_block else 'None'}")
+        # Use current block as fallback to continue test
+        selected_block = current_state.current_code_block if current_state.current_code_block else available_blocks[0] if available_blocks else None
+        if not selected_block:
+            raise ValueError("No CODE blocks available at all!")
+    else:
+        selected_block = choice.choice(values=available_blocks_without_current)
 
     selected_scenario = scenario_manager.get_random_scenario(tags=dict(Configuration.Knobs.Template.scenario_query.get_value()), current_privilege_level=current_state.privilege_level)
 
@@ -94,17 +104,15 @@ def do_body():
     
     privilege_manager = None
     for state_id in available_states:
-        per_core_scenario_count[state_id] = (1, int(Configuration.Knobs.Template.scenario_count)) # TODO:: replace this with per state knob state_manager.scenario_count
+        per_state_scenario_count[state_id] = (1, int(Configuration.Knobs.Template.scenario_count)) # TODO:: replace this with per state knob state_manager.scenario_count
 
         with SwitchState(state_id):
             AsmLogger.comment(f"========================= state {state_id} - TEST BODY - start =====================")
 
-            current_state = state_id.get_active_state()
+            current_state = state_manager.get_active_state()
 
             privilege_level = current_state.privilege_level
         
-            per_state_scenario_count[state_id] = (1, int(Configuration.Knobs.Template.scenario_count)) # TODO:: replace this with per state knob state_manager.scenario_count
-
             # Group states by privilege level
             privilege_groups[privilege_level].append(state_id)
 

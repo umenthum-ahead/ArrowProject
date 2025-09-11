@@ -69,7 +69,7 @@ def do_boot():
                 Barrier(end_boot_barrier_label)
 
 
-        AsmLogger.comment(f"Stack segment generated at {stack_block.address} with size {stack_block.byte_size}")
+        AsmLogger.comment(f"Stack segment generated at {stack_block.get_address()} with size {stack_block.byte_size}")
 
         if Configuration.Architecture.x86:
             AsmLogger.comment(f"TODO: stack initialization for x86")
@@ -78,8 +78,8 @@ def do_boot():
             sp = RegisterManager.get(reg_name='sp')
             sp.set_reserve()
             #stack_mem = MemoryManager.Memory(name='stack_memory', memory_block=stack_block, byte_size=stack_block.byte_size, memory_block_offset=0)
-            Configuration.RiscvConfig.register_stack_memory(current_state.privilege_level, stack_block)
-            if current_state.privilege_level == PrivilegeLevel.RISCV.MACHINE:
+            Configuration.RiscvConfig.register_stack_memory(curr_state.privilege_level, stack_block)
+            if curr_state.privilege_level == PrivilegeLevel.RISCV.MACHINE:
                 AsmLogger.asm(f"la sp, {stack_block.unique_label} + {stack_block.byte_size - 8}", comment="Load the value of the stack")
         elif Configuration.Architecture.arm:
             AsmLogger.comment(f"TODO: stack initialization for ARM")

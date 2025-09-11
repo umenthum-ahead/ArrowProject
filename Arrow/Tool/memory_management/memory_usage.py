@@ -34,8 +34,8 @@ def allocate_data_memory(segment_manager: SegmentManager,
     execution_platform = config_manager.get_value('Execution_platform')
 
 
-    if pool_type not in [Configuration.Memory_types.DATA_SHARED, Configuration.Memory_types.DATA_PRESERVE]:
-        raise ValueError(f"Invalid memory type {pool_type}, type should only be DATA_SHARED or DATA_PRESERVE")
+    if pool_type not in [Configuration.Memory_types.DATA_SHARED, Configuration.Memory_types.DATA_PRESERVE, Configuration.Memory_types.STACK]:
+        raise ValueError(f"Invalid memory type {pool_type}, type should only be DATA_SHARED, DATA_PRESERVE, or STACK")
 
     if pool_type is Configuration.Memory_types.DATA_SHARED and init_value_byte_representation is not None:
         raise ValueError(f"Can't initialize value in a shared memory")
@@ -109,7 +109,7 @@ def allocate_data_memory(segment_manager: SegmentManager,
                 # Find an available region with proper alignment
                 allocation = selected_segment.interval_tracker.find_region(byte_size, alignment)
                 if not allocation:
-                    memory_logger.error(f"No available space in segment for allocation", level="error")
+                    memory_logger.error(f"No available space in segment for allocation")
                     raise ValueError(f"No available space in segment {selected_segment.name}")
                         
                 address, _ = allocation
@@ -122,7 +122,7 @@ def allocate_data_memory(segment_manager: SegmentManager,
                 memory_logger.info(f"DATA_PRESERVE allocation {state_name} - Segment '{selected_segment.name}' at VA:{hex(address)}, PA:{hex(pa_address)}, size:{byte_size}")
                     
             except Exception as e:
-                memory_logger.error(f"Failed to allocate data memory: {e}", level="error")
+                memory_logger.error(f"Failed to allocate data memory: {e}")
                 raise ValueError(f"Could not allocate data memory in segment {selected_segment.name}")
     else:  # 'linked_elf'
         address = None

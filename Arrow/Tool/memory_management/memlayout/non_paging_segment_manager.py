@@ -169,7 +169,7 @@ class NonPagingSegmentManager:
                 logger.info(f"  {segment}")
 
 
-class NonPagingCodeSegment:
+class NonPagingCodeSegment(CodeSegment):
     """
     Minimal CodeSegment for non-paging scenarios.
     """
@@ -207,7 +207,7 @@ class NonPagingCodeSegment:
         return self.__str__()
 
 
-class NonPagingDataSegment:
+class NonPagingDataSegment(DataSegment):
     """
     Minimal DataSegment for non-paging scenarios.
     """

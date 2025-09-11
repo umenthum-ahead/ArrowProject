@@ -6,7 +6,6 @@ from Arrow.Tool.generation_management.utils import map_inputs_to_operands
 from Arrow.Tool.state_management import get_state_manager
 from Arrow.Tool.memory_management.memory_operand import Memory
 from Arrow.Tool.asm_libraries.label import LabelImm
-import ast
 
 def generate_riscv(
         selected_instruction: Instruction,
@@ -36,12 +35,14 @@ def generate_riscv(
     instruction_comment = comment
     instruction_list = [] # some instances might require dynamic init
 
-    # convert the operand from a string into a list of operands
-    if isinstance(selected_instruction.operands, str):
-        selected_instruction.operands = ast.literal_eval(selected_instruction.operands)
+    # Get operands as objects for consistent interface
+    operands = selected_instruction.get_operands_as_objects()
+    
+    # Set selected_instruction.operands to the objects for compatibility with utils
+    selected_instruction.operands = operands
 
     # set True or False if one of the operands has memory type
-    memory_usage = any(operand['type'] == "offset_plus_basereg" for operand in selected_instruction.operands)
+    memory_usage = any(operand.type == "offset_plus_basereg" for operand in operands)
     if memory_usage:
         if src is not None and isinstance(src, Memory):
             memory_operand = src
@@ -64,8 +65,8 @@ def generate_riscv(
 
     # evaluate operands
     evaluated_operands = []
-    op_location = 0
-    for operand in selected_instruction.operands:
+    op_location = 1  # Start at 1 to match find_possible_locations indexing
+    for operand in operands:
         if src_location == op_location:
             if isinstance(src, Memory):
                 eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg)
@@ -76,26 +77,26 @@ def generate_riscv(
                 eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg)
             else:
                 eval_operand = dest
-        elif operand['type'] == "reg":
+        elif operand.type == "gpr":
             eval_operand = current_state.register_manager.get(reg_type="gpr")
-        elif operand['type'] == "imm":
-            random_imm = generate_random_imm_with_size(operand['size'])
+        elif operand.type == "imm":
+            random_imm = generate_random_imm_with_size(operand.size)
             eval_operand = random_imm
             if selected_instruction.mnemonic in ['auipc', 'lui']:
                 # For the li instruction, we need to set the immediate value in the next register as well
                 eval_operand = f"%hi(({random_imm}) << 12)"
-        elif operand['type'] == "iorw":
+        elif operand.type == "iorw":
             random_iorw = random.randint(1, 15)
             eval_operand = ''.join("iorw"[i] for i in range(4) if random_iorw & (1 << (3 - i)))
-        elif operand['type'] == "offset_plus_basereg":
+        elif operand.type == "offset_plus_basereg":
             # For every memory usage, we will plant a dynamic_init instruction to place that memory address in a temp register
             # this is done to avoid using memories offset due to their formatting requirements and my lack of knowledge.
             # TODO:: need to improve that logic and integrate offset allocation and avoid dynamic_init where possible!
             eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg)
-        elif operand['type'] == "offset_imm":
+        elif operand.type == "offset_imm":
             eval_operand = random.randint(0, 100)
         else:
-            raise ValueError(f"invalid operand type {operand['type']} at selected instruction {selected_instruction.mnemonic}")
+            raise ValueError(f"invalid operand type {operand.type} at selected instruction {selected_instruction.mnemonic}")
 
         evaluated_operands.append(eval_operand)
         op_location += 1

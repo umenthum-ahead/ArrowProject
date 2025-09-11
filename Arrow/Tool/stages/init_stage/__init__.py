@@ -68,7 +68,9 @@ def init_state():
             if privilege_mode_managed and not Configuration.Architecture.riscv:
                 raise ValueError("Managed privilege mode is only supported on RISC-V architecture. Use bare mode for other architectures.")
 
-            base_register_value = core_memory_region_start + (core_memory_region_size // 2)
+            # Set a default base register value for RISC-V
+            # For non-paging mode, we'll use a simple fixed address
+            base_register_value = 0x80000000  # Default RISC-V memory base
             base_register_value = base_register_value & ~0b11  # Round Down (to the nearest multiple of 4) to make it 4-byte aligned
             stack_pointer = register_manager.RegisterManager().get(reg_name="sp", reg_type="gpr")
             register_manager.RegisterManager().reserve(stack_pointer)
@@ -182,7 +184,6 @@ def init_page_tables():
 
             curr_state = state_manager.set_active_state(state_name)
             curr_state.current_el_page_table = el3r
-        else:
         else:
             raise ValueError(f"Unsupported architecture for page table initialization")
 
