@@ -97,8 +97,7 @@ class PrivilegeManager:
             # Now that we've saved the registers, we can use any register to store the return label, except the stack pointer
             x0_reg = RegisterManager.get(reg_name="x0")
             non_sp_regs = RegisterManager.get_used_registers(reg_type="gpr") + RegisterManager.get_free_registers(reg_type="gpr")
-            non_sp_regs.remove(x0_reg)  # x0 cannot be used for storing values
-            non_sp_regs = [reg for reg in non_sp_regs if reg.name != sp.name]  # don't want to overwrite the stack pointer
+            non_sp_regs = [reg for reg in non_sp_regs if reg.name != sp.name and reg.name != "x0"]  # don't want to overwrite the stack pointer or use x0
 
             # save xstatus register and set the xPP privilege level
             status_reg = random.choice(non_sp_regs)

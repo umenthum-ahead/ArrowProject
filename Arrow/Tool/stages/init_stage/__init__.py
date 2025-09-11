@@ -83,14 +83,14 @@ def init_state():
                     logger.info(f'    Creating managed privilege state {priv_state_id} (privilege level {priv_level})')
 
                     new_register_manager = register_manager.RegisterManager()
-                    curr_state = State(
+                    curr_state = State.create_state(
                         state_name=priv_state_id,
+                        state_id=state_id,
+                        register_manager=new_register_manager,
                         processor_mode=Configuration.Knobs.Config.processor_mode,
                         privilege_level=priv_level,
-                        register_manager=new_register_manager,
-                        memory_range=None,
-                        memory_manager=None,
-                        current_code=None,
+                        enabled_page_tables=[],
+                        current_code_block=None,
                         base_register=None,
                         base_register_value=base_register_value,
                         stack_pointer=stack_pointer,
@@ -142,7 +142,7 @@ def init_state():
     # Set the default active state
     # In managed mode, prefer machine privilege level, otherwise use core_0
     if privilege_mode_managed and Configuration.Architecture.riscv:
-        default_state = 'core_0_priv_machine'  # Machine privilege level
+        default_state = 'core0_thread0_priv_machine'  # Machine privilege level
         logger.info(f"Setting default active state to {default_state} (machine privilege level)")
     else:
         default_state = 'core0_thread0'

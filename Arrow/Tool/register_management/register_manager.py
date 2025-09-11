@@ -180,7 +180,7 @@ class RegisterManager:
         """
         return random.choice([reg for reg in self.get_all_registers(reg_type) if reg not in exclude and reg.name not in exclude])
 
-    def get(self, reg_name:str=None, reg_type:str=None) -> Register:
+    def get(self, reg_name:str=None, reg_type:str="gpr") -> Register:
         """
         Selects a random free register, don't mark them as used (reserved = False),
         and returns the selected register. If no available child is found, raise Error

@@ -53,7 +53,7 @@ def generate_riscv(
 
         # setting an address register to be used as part of the dynamic_init if a memory operand is used
         memory_usage_with_basecreg = any(operand.type == "offset_plus_basecreg" for operand in selected_instruction.operands)
-        memory_usage_with_fixedbasereg = any(operand.type. == "offset_plus_fixedbasereg" for operand in selected_instruction.operands)
+        memory_usage_with_fixedbasereg = any(operand.type == "offset_plus_fixedbasereg" for operand in selected_instruction.operands)
         if memory_usage_with_basecreg:
             free_regs = current_state.register_manager.get_free_registers()
             # filter out the 8 common registers that can be used by creg instructions
@@ -65,7 +65,7 @@ def generate_riscv(
                 raise RuntimeError(f"Register manager ran out of free registers")
             dynamic_init_memory_address_reg = selected_reg
         elif memory_usage_with_fixedbasereg:
-            reg_name = [operand['name'] for operand in selected_instruction.operands if operand['type'] == "offset_plus_fixedbasereg"][0]
+            reg_name = [operand.name for operand in selected_instruction.operands if operand.type == "offset_plus_fixedbasereg"][0]
             dynamic_init_memory_address_reg = current_state.register_manager.get_and_reserve(reg_name=reg_name)
         else:
             dynamic_init_memory_address_reg = current_state.register_manager.get_and_reserve(reg_type="gpr")
@@ -95,7 +95,7 @@ def generate_riscv(
                 eval_operand = dest
         elif operand.type == "implicit_operand":
             eval_operand = operand.name
-        elif operand.type == "reg":
+        elif operand.type == "gpr":
             eval_operand = current_state.register_manager.get()
         elif operand.type == 'creg':
             free_regs = current_state.register_manager.get_free_registers()
@@ -119,7 +119,7 @@ def generate_riscv(
             # For every memory usage, we will plant a dynamic_init instruction to place that memory address in a temp register
             # this is done to avoid using memories offset due to their formatting requirements and my lack of knowledge.
             # TODO:: need to improve that logic and integrate offset allocation and avoid dynamic_init where possible!
-            offset = generate_random_imm_with_size(operand['size'])
+            offset = generate_random_imm_with_size(operand.size)
             eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg, offset)
         elif operand.type == "offset_imm":
             eval_operand = random.randint(0, 100)

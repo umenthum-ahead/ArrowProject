@@ -1,9 +1,8 @@
 
 from collections import defaultdict
 import random
-from Arrow.Arrow_API.resources.register_manager import RegisterManager_API as RegisterManager
-from Arrow.Utils.configuration_management.enums import PrivilegeLevel
 from Arrow.Tool.register_management.register_manager import RegisterManager
+from Arrow.Utils.configuration_management.enums import PrivilegeLevel
 from Arrow.Utils.configuration_management.knob_manager import Knob
 
 class RiscvConfig:
