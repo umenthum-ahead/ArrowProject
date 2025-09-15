@@ -129,7 +129,7 @@ class RISCVState(State):
             )
             self.segment_manager.allocate_memory_segment(
                 name=f"{self.state_name}_default_data_preserve",
-                byte_size=0x1000,  # 4KB default
+                byte_size=0x100000,  # 1MB default
                 memory_type=Configuration.Memory_types.DATA_PRESERVE,
                 exclusive_segment=False
             )

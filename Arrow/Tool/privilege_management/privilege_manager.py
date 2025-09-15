@@ -54,8 +54,8 @@ class PrivilegeManager:
         self.managed_test_body_label = Label(f"managed_test_body_label")
         self.m_trap_handler_label = Label(f"m_trap_handler")
         self.s_trap_handler_label = Label(f"s_trap_handler")
-        self.s_sp_save_mem = MemoryManager.Memory(byte_size=8)
-        self.m_sp_save_mem = MemoryManager.Memory(byte_size=8)
+        self.s_sp_save_mem = MemoryManager.Memory(byte_size=8, init_value=0)
+        self.m_sp_save_mem = MemoryManager.Memory(byte_size=8, init_value=0)
         # Track if we've already generated the setup and handlers
         self.setup_generated = False
         self.m_handler_generated = False

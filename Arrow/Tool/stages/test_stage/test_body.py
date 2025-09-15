@@ -76,7 +76,7 @@ def do_scenario(current_scenario: Optional[int], max_scenario:Optional[int]):
     if Configuration.Knobs.Config.privilege_mode_managed.get_value():
         AsmLogger.asm(f"{selected_scenario.label}:")
         execute_scenario(selected_scenario)
-        if Configuration.Architecture.riscv and Configuration.Knobs.Memory.paging_enabled.get_value():
+        if Configuration.Architecture.riscv:
             AsmLogger.asm(f"li {Configuration.RiscvConfig.ecall_arg_reg}, {Configuration.RiscvConfig.ecall_arg_magic_val}")
             AsmLogger.asm("ecall")
         elif not Configuration.Architecture.riscv:
