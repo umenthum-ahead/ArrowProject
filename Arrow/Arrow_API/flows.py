@@ -73,7 +73,7 @@ class AR:
         return adaptive_choice_manager.adaptive_choice(values)
 
 
-    # @staticmethod
+    @staticmethod
     def generate(
             instruction_count: Optional[int] = 1,
             query: Optional[Expression|Dict] = None,
