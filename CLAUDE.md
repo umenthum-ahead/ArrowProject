@@ -73,7 +73,7 @@ This is the nue-core project containing Arrow, an architecture-agnostic random i
 - External/upstream changes go in appropriate `Arrow/` subdirectories
 
 ## Development Environment
-- **Package manager**: This project uses `uv` (available at `/home/umenthum/.local/bin/uv`)
+- **Package manager**: This project uses `uv` (install with `pip install uv` or see https://github.com/astral-sh/uv)
 - **Virtual environment**: `../../.venv/` (already set up with uv)
 - **Install dependencies**: `cd ../../ && uv sync` (installs all workspace packages including Arrow)
 - **Install Arrow in dev mode**: Already included in workspace - use `uv sync`
