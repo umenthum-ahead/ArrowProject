@@ -23,6 +23,12 @@ def init_state():
     logger.info("============ init_state")
     state_manager = get_state_manager()
 
+    # Default state that will be set as active later
+    # Default state will be set during state creation
+
+    # Track if privilege mode is managed (only relevant for RISC-V)
+    privilege_mode_managed = False
+
     core_count = Configuration.Knobs.Config.core_count.get_value()
     thread_count = Configuration.Knobs.Config.thread_count.get_value()
     states = []
@@ -78,6 +84,7 @@ def init_state():
             if privilege_mode_managed:
                 # Managed mode: Create separate states for each privilege level on RISC-V
                 privilege_levels = [PrivilegeLevel.RISCV.MACHINE, PrivilegeLevel.RISCV.SUPERVISOR, PrivilegeLevel.RISCV.USER]
+
                 for priv_level in privilege_levels:
                     priv_state_id = f'{state_id}_priv_{priv_level.name.lower()}'
                     logger.info(f'    Creating managed privilege state {priv_state_id} (privilege level {priv_level})')
@@ -99,6 +106,10 @@ def init_state():
                     sp_reg = Configuration.RiscvConfig.get_privileged_stack_pointer(priv_level)
                     sp_reg = new_register_manager.get(reg_name=sp_reg.name)
                     new_register_manager.reserve(sp_reg)
+
+                # Override default state to use machine privilege level for core0_thread0
+                if state_id == 'core0_thread0':
+                    state_manager.set_default_state('core0_thread0_priv_machine')
             else:
                 curr_state = State.create_state(
                     state_name=state_id,
@@ -111,6 +122,10 @@ def init_state():
                     base_register=None,
                     base_register_value=base_register_value,
                 )
+                state_manager.add_state(state_id, curr_state)
+                # If not in managed privilege mode and this is core0_thread0, set it as default
+                if state_id == 'core0_thread0':
+                    state_manager.set_default_state(state_id)
         elif Configuration.Architecture.arm:
             curr_state = State.create_state(
                 state_name=state_id,
@@ -122,10 +137,12 @@ def init_state():
                 current_code_block=None,
                 current_el_page_table=None,
             )
+            state_manager.add_state(state_id, curr_state)
+            # For ARM, set core0_thread0 as default if this is it
+            if state_id == 'core0_thread0':
+                state_manager.set_default_state(state_id)
         else:
             raise ValueError(f"Unknown Architecture requested")
-
-        state_manager.add_state(state_id, curr_state)
         #curr_state.page_table_manager = page_manager.PageTableManager()
 
 
@@ -137,18 +154,9 @@ def init_state():
         curr_state.base_register = curr_state.register_manager.get_and_reserve()
         # print(curr_state)
 
-    state_manager.set_active_state('core0_thread0')
-
-    # Set the default active state
-    # In managed mode, prefer machine privilege level, otherwise use core_0
-    if privilege_mode_managed and Configuration.Architecture.riscv:
-        default_state = 'core0_thread0_priv_machine'  # Machine privilege level
-        logger.info(f"Setting default active state to {default_state} (machine privilege level)")
-    else:
-        default_state = 'core0_thread0'
-        logger.info(f"Setting default active state to {default_state}")
-    
-    state_manager.set_active_state(default_state)
+    # Set the active state to the default
+    logger.info(f"Setting active state to default: {state_manager.get_default_state_id()}")
+    state_manager.set_active_state_to_default()
 
 def init_registers():
     logger = get_logger()
@@ -162,7 +170,7 @@ def init_registers():
         # Preserving a register to be used as base_register
         curr_state.base_register = curr_state.register_manager.get_and_reserve()
 
-    state_manager.set_active_state("core0_thread0")
+    state_manager.set_active_state_to_default()
 
 
 def init_page_tables():
@@ -187,7 +195,7 @@ def init_page_tables():
         else:
             raise ValueError(f"Unsupported architecture for page table initialization")
 
-    state_manager.set_active_state("core0_thread0")
+    state_manager.set_active_state_to_default()
     
     page_tables = page_table_manager.get_all_page_tables()
 
@@ -220,7 +228,7 @@ def init_page_tables():
                 page = page_table.allocate_page(size=size, page_type=type, sequential_page_count=sequential_page_count)
 
 
-    state_manager.set_active_state("core0_thread0")
+    state_manager.set_active_state_to_default()
 
 
 def init_segments():

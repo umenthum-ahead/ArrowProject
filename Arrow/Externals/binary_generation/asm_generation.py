@@ -325,23 +325,29 @@ def generate_assembly():
 
     page_table_manager = get_page_table_manager()
 
-    for page_table in page_table_manager.get_all_page_tables():
+    # Check if we're in paging mode
+    paging_enabled = Configuration.Knobs.Memory.paging_enabled.get_value()
+    logger.debug(f"Paging enabled: {paging_enabled}")
 
-        all_code_segments.extend(page_table.segment_manager.get_segments(
-            pool_type=[Configuration.Memory_types.BSP_BOOT_CODE,
-                       Configuration.Memory_types.BOOT_CODE,
-                       Configuration.Memory_types.CODE]))
-        
-        all_data_segments.extend(page_table.segment_manager.get_segments(
-            pool_type=[Configuration.Memory_types.DATA_SHARED, 
-                        Configuration.Memory_types.DATA_PRESERVE, 
-                        Configuration.Memory_types.STACK]))
+    if paging_enabled:
+        # In paging mode, collect segments from page tables
+        logger.debug("Collecting segments from page tables")
+        for page_table in page_table_manager.get_all_page_tables():
 
-    # For non-paging mode, also collect segments from state managers
-    if not Configuration.Knobs.Memory.paging_enabled.get_value():
+            all_code_segments.extend(page_table.segment_manager.get_segments(
+                pool_type=[Configuration.Memory_types.BSP_BOOT_CODE,
+                           Configuration.Memory_types.BOOT_CODE,
+                           Configuration.Memory_types.CODE]))
+
+            all_data_segments.extend(page_table.segment_manager.get_segments(
+                pool_type=[Configuration.Memory_types.DATA_SHARED,
+                            Configuration.Memory_types.DATA_PRESERVE,
+                            Configuration.Memory_types.STACK]))
+    else:
+        # For non-paging mode, collect segments from state managers instead
         from Arrow.Tool.state_management import get_state_manager
         state_manager = get_state_manager()
-        logger.debug("Paging disabled - collecting segments from state managers")
+        logger.debug("Paging disabled - collecting segments from state managers only")
         
         # Collect segments from all states
         for state_id in state_manager.get_all_states():

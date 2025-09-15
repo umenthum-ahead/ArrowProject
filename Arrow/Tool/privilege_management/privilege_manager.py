@@ -56,8 +56,16 @@ class PrivilegeManager:
         self.s_trap_handler_label = Label(f"s_trap_handler")
         self.s_sp_save_mem = MemoryManager.Memory(byte_size=8)
         self.m_sp_save_mem = MemoryManager.Memory(byte_size=8)
+        # Track if we've already generated the setup and handlers
+        self.setup_generated = False
+        self.m_handler_generated = False
+        self.s_handler_generated = False
 
     def gen_privilege_setup(self):
+        # Only generate setup once
+        if self.setup_generated:
+            return
+        self.setup_generated = True
         AsmLogger.asm(f"{self.managed_test_body_label}:")
         mtvec_reg = RegisterManager.get(reg_type="gpr")
         dest_reg = RegisterManager.get(reg_type="gpr")
@@ -158,8 +166,16 @@ class PrivilegeManager:
 
     def gen_trap_handler(self, privilege_level):
         if privilege_level == PrivilegeLevel.RISCV.MACHINE:
+            # Only generate M-mode handler once
+            if self.m_handler_generated:
+                return
+            self.m_handler_generated = True
             handler_label = self.m_trap_handler_label
         elif privilege_level == PrivilegeLevel.RISCV.SUPERVISOR:
+            # Only generate S-mode handler once
+            if self.s_handler_generated:
+                return
+            self.s_handler_generated = True
             handler_label = self.s_trap_handler_label
         else:
             raise ValueError(f"Unsupported privilege level {privilege_level} for RISC-V trap handling.")

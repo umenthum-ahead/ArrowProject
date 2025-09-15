@@ -199,6 +199,7 @@ class State_manager:
     def __init__(self):
         self.states_dict: dict[str, State] = {}  # Stores states by unique IDs
         self.active_state_id: str | None = None  # ID of the currently active state
+        self.default_state_id: str | None = None  # ID of the default state (used for init and fallback)
 
     def add_state(self, state_id: str, state: State) -> None:
         """
@@ -209,6 +210,10 @@ class State_manager:
         if state_id in self.states_dict:
             raise ValueError(f"State with ID {state_id} already exists.")
         self.states_dict[state_id] = state
+
+        # If this is the first state added, make it the default
+        if self.default_state_id is None:
+            self.default_state_id = state_id
         
         # # Force initialize memory space manager for this state
         # from Arrow.Tool.memory_management.memory_space_manager import get_memory_space_manager
@@ -263,6 +268,7 @@ class State_manager:
         """
         self.states_dict.clear()
         self.active_state_id = None
+        self.default_state_id = None
 
     def is_active_state(self, state_id: str) -> bool:
         """
@@ -275,5 +281,41 @@ class State_manager:
             bool: True if the state is active, False otherwise.
         """
         return self.active_state_id == state_id
+
+    def set_default_state(self, state_id: str) -> None:
+        """
+        Set the default state ID.
+        :param state_id: Unique identifier for the state to set as default
+        """
+        if state_id not in self.states_dict:
+            raise ValueError(f"State with ID {state_id} does not exist. valid states are {self.states_dict.keys()}")
+        self.default_state_id = state_id
+
+    def get_default_state_id(self) -> str:
+        """
+        Get the default state ID.
+        :return: The default state ID
+        """
+        if self.default_state_id is None:
+            raise RuntimeError("No default state set.")
+        return self.default_state_id
+
+    def get_default_state(self) -> State:
+        """
+        Get the default state object.
+        :return: The default state object
+        """
+        if self.default_state_id is None:
+            raise RuntimeError("No default state set.")
+        return self.states_dict[self.default_state_id]
+
+    def set_active_state_to_default(self) -> State:
+        """
+        Set the active state to the default state.
+        :return: The default state object
+        """
+        if self.default_state_id is None:
+            raise RuntimeError("No default state set.")
+        return self.set_active_state(self.default_state_id)
 
 
