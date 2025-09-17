@@ -188,7 +188,7 @@ class PrivilegeManager:
         x0_reg = RegisterManager.get(reg_name="x0")
         available_regs = RegisterManager.get_used_registers(reg_type="gpr") + RegisterManager.get_free_registers(reg_type="gpr")
         # don't want to overwrite the stack pointer or ecall arg reg, and can't write to x0
-        available_regs = [reg for reg in available_regs if reg.name not in [msp.name, ssp.name, Configuration.RiscvConfig.ecall_arg_reg, "x0"]]
+        available_regs = [reg for reg in available_regs if reg.name not in [msp.name, ssp.name, Configuration.RiscvConfig.ecall_arg_reg.name, "x0"]]
         tmp_reg = random.choice(available_regs)
 
         # Helper function to randomly get x0 or tmp register
@@ -319,7 +319,6 @@ class PrivilegeManager:
         ecall_reg = Configuration.RiscvConfig.ecall_arg_reg
         AsmLogger.asm(f"beqz {ecall_reg}, {skip_handler}", comment="If ecall register is 0, fall back to skip instruction")
         AsmLogger.asm(f"csrrw {get_tmp_or_x0_reg()}, {epc}, {ecall_reg}", comment="Set EPC to return address from JALR")
-        AsmLogger.asm(f"li {ecall_reg}, 0", comment="Clear ecall register")
         AsmLogger.asm(f"csrrw {tmp_reg}, {scratch}, {RegisterManager.get_any()}", comment="Restore temp register from scratch")
         AsmLogger.asm(f"{ret}", comment="Return from exception")
 

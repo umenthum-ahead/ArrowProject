@@ -78,8 +78,6 @@ def init_state():
             # For non-paging mode, we'll use a simple fixed address
             base_register_value = 0x80000000  # Default RISC-V memory base
             base_register_value = base_register_value & ~0b11  # Round Down (to the nearest multiple of 4) to make it 4-byte aligned
-            stack_pointer = register_manager.RegisterManager().get(reg_name="sp", reg_type="gpr")
-            register_manager.RegisterManager().reserve(stack_pointer)
 
             if privilege_mode_managed:
                 # Managed mode: Create separate states for each privilege level on RISC-V
@@ -90,6 +88,9 @@ def init_state():
                     logger.info(f'    Creating managed privilege state {priv_state_id} (privilege level {priv_level})')
 
                     new_register_manager = register_manager.RegisterManager()
+                    sp_reg = Configuration.RiscvConfig.get_privileged_stack_pointer(priv_level)
+                    sp_reg = new_register_manager.get(reg_name=sp_reg.name)
+                    new_register_manager.reserve(sp_reg)
                     curr_state = State.create_state(
                         state_name=priv_state_id,
                         state_id=state_id,
@@ -100,27 +101,32 @@ def init_state():
                         current_code_block=None,
                         base_register=None,
                         base_register_value=base_register_value,
-                        stack_pointer=stack_pointer,
+                        stack_pointer=sp_reg,
                     )
                     state_manager.add_state(priv_state_id, curr_state)
-                    sp_reg = Configuration.RiscvConfig.get_privileged_stack_pointer(priv_level)
-                    sp_reg = new_register_manager.get(reg_name=sp_reg.name)
-                    new_register_manager.reserve(sp_reg)
+                    # Also reserve ecall_arg_reg for privilege management
+                    ecall_reg = new_register_manager.get(reg_name=Configuration.RiscvConfig.ecall_arg_reg.name)
+                    new_register_manager.reserve(ecall_reg)
 
                 # Override default state to use machine privilege level for core0_thread0
                 if state_id == 'core0_thread0':
                     state_manager.set_default_state('core0_thread0_priv_machine')
             else:
+                new_register_manager = register_manager.RegisterManager()
+                sp_reg = Configuration.RiscvConfig.get_privileged_stack_pointer(PrivilegeLevel.RISCV.MACHINE)
+                sp_reg = new_register_manager.get(reg_name=sp_reg.name)
+                new_register_manager.reserve(sp_reg)
                 curr_state = State.create_state(
                     state_name=state_id,
                     state_id=i,
                     processor_mode=Configuration.Knobs.Config.processor_mode,
-                    privilege_level=0,
-                    register_manager=register_manager.RegisterManager(),
+                    privilege_level=PrivilegeLevel.RISCV.MACHINE,
+                    register_manager=new_register_manager,
                     enabled_page_tables = [],
                     current_code_block=None,
                     base_register=None,
                     base_register_value=base_register_value,
+                    stack_pointer=sp_reg,
                 )
                 state_manager.add_state(state_id, curr_state)
                 # If not in managed privilege mode and this is core0_thread0, set it as default
