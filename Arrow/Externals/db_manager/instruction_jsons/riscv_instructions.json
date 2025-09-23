@@ -3859,6 +3859,155 @@
             "syntax": "C.SUBW dest_reg, src_reg",
             "extension": ["compressed"],
             "architecture_modes": ["RV64"]
+        },
+        {
+            "mnemonic": "ntl.p1",
+            "operands": [],
+            "type": "R",
+            "group": "hint",
+            "description": "Non-temporal locality hint, level 1 (strongest hint)",
+            "syntax": "NTL.P1",
+            "extension": ["zihintntl"],
+            "architecture_modes": ["RV32", "RV64"]
+        },
+        {
+            "mnemonic": "ntl.pall",
+            "operands": [],
+            "type": "R",
+            "group": "hint",
+            "description": "Non-temporal locality hint for all levels",
+            "syntax": "NTL.PALL",
+            "extension": ["zihintntl"],
+            "architecture_modes": ["RV32", "RV64"]
+        },
+        {
+            "mnemonic": "ntl.s1",
+            "operands": [],
+            "type": "R",
+            "group": "hint",
+            "description": "Non-temporal locality hint for stores, level 1",
+            "syntax": "NTL.S1",
+            "extension": ["zihintntl"],
+            "architecture_modes": ["RV32", "RV64"]
+        },
+        {
+            "mnemonic": "ntl.all",
+            "operands": [],
+            "type": "R",
+            "group": "hint",
+            "description": "Non-temporal locality hint for all operations",
+            "syntax": "NTL.ALL",
+            "extension": ["zihintntl"],
+            "architecture_modes": ["RV32", "RV64"]
+        },
+        {
+            "mnemonic": "c.ntl.p1",
+            "operands": [],
+            "type": "CI",
+            "group": "hint",
+            "description": "Compressed non-temporal locality hint, level 1 (strongest hint)",
+            "syntax": "C.NTL.P1",
+            "extension": ["zchintntl"],
+            "architecture_modes": ["RV32", "RV64"]
+        },
+        {
+            "mnemonic": "c.ntl.pall",
+            "operands": [],
+            "type": "CI",
+            "group": "hint",
+            "description": "Compressed non-temporal locality hint for all levels",
+            "syntax": "C.NTL.PALL",
+            "extension": ["zchintntl"],
+            "architecture_modes": ["RV32", "RV64"]
+        },
+        {
+            "mnemonic": "c.ntl.s1",
+            "operands": [],
+            "type": "CI",
+            "group": "hint",
+            "description": "Compressed non-temporal locality hint for stores, level 1",
+            "syntax": "C.NTL.S1",
+            "extension": ["zchintntl"],
+            "architecture_modes": ["RV32", "RV64"]
+        },
+        {
+            "mnemonic": "c.ntl.all",
+            "operands": [],
+            "type": "CI",
+            "group": "hint",
+            "description": "Compressed non-temporal locality hint for all operations",
+            "syntax": "C.NTL.ALL",
+            "extension": ["zchintntl"],
+            "architecture_modes": ["RV32", "RV64"]
+        },
+        {
+            "mnemonic": "prefetch.i",
+            "operands": [
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "immediate",
+                    "type": "imm",
+                    "role": "src",
+                    "size": "12_bits_signed"
+                }
+            ],
+            "type": "I",
+            "group": "cache",
+            "description": "Prefetch cache block for instruction access",
+            "syntax": "PREFETCH.I immediate(src_reg)",
+            "extension": ["zicbop"],
+            "architecture_modes": ["RV32", "RV64"]
+        },
+        {
+            "mnemonic": "prefetch.r",
+            "operands": [
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "immediate",
+                    "type": "imm",
+                    "role": "src",
+                    "size": "12_bits_signed"
+                }
+            ],
+            "type": "I",
+            "group": "cache",
+            "description": "Prefetch cache block for read access",
+            "syntax": "PREFETCH.R immediate(src_reg)",
+            "extension": ["zicbop"],
+            "architecture_modes": ["RV32", "RV64"]
+        },
+        {
+            "mnemonic": "prefetch.w",
+            "operands": [
+                {
+                    "name": "src_reg",
+                    "type": "gpr",
+                    "role": "src",
+                    "size": "full_register_width"
+                },
+                {
+                    "name": "immediate",
+                    "type": "imm",
+                    "role": "src",
+                    "size": "12_bits_signed"
+                }
+            ],
+            "type": "I",
+            "group": "cache",
+            "description": "Prefetch cache block for write access",
+            "syntax": "PREFETCH.W immediate(src_reg)",
+            "extension": ["zicbop"],
+            "architecture_modes": ["RV32", "RV64"]
         }
     ],
     "pseudo_instructions": [
