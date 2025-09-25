@@ -3944,22 +3944,16 @@
             "mnemonic": "prefetch.i",
             "operands": [
                 {
-                    "name": "src_reg",
-                    "type": "gpr",
+                    "name": "offset_plus_basereg",
+                    "type": "offset_plus_basereg",
                     "role": "src",
-                    "size": "full_register_width"
-                },
-                {
-                    "name": "immediate",
-                    "type": "imm",
-                    "role": "src",
-                    "size": "12_bits_signed"
+                    "size": "7_bits_shift_5_signed"
                 }
             ],
             "type": "I",
             "group": "cache",
             "description": "Prefetch cache block for instruction access",
-            "syntax": "PREFETCH.I immediate(src_reg)",
+            "syntax": "PREFETCH.I offset(base_reg)",
             "extension": ["zicbop"],
             "architecture_modes": ["RV32", "RV64"]
         },
@@ -3967,22 +3961,16 @@
             "mnemonic": "prefetch.r",
             "operands": [
                 {
-                    "name": "src_reg",
-                    "type": "gpr",
+                    "name": "offset_plus_basereg",
+                    "type": "offset_plus_basereg",
                     "role": "src",
-                    "size": "full_register_width"
-                },
-                {
-                    "name": "immediate",
-                    "type": "imm",
-                    "role": "src",
-                    "size": "12_bits_signed"
+                    "size": "7_bits_shift_5_signed"
                 }
             ],
             "type": "I",
             "group": "cache",
             "description": "Prefetch cache block for read access",
-            "syntax": "PREFETCH.R immediate(src_reg)",
+            "syntax": "PREFETCH.R offset(base_reg)",
             "extension": ["zicbop"],
             "architecture_modes": ["RV32", "RV64"]
         },
@@ -3990,22 +3978,16 @@
             "mnemonic": "prefetch.w",
             "operands": [
                 {
-                    "name": "src_reg",
-                    "type": "gpr",
+                    "name": "offset_plus_basereg",
+                    "type": "offset_plus_basereg",
                     "role": "src",
-                    "size": "full_register_width"
-                },
-                {
-                    "name": "immediate",
-                    "type": "imm",
-                    "role": "src",
-                    "size": "12_bits_signed"
+                    "size": "7_bits_shift_5_signed"
                 }
             ],
             "type": "I",
             "group": "cache",
             "description": "Prefetch cache block for write access",
-            "syntax": "PREFETCH.W immediate(src_reg)",
+            "syntax": "PREFETCH.W offset(base_reg)",
             "extension": ["zicbop"],
             "architecture_modes": ["RV32", "RV64"]
         }

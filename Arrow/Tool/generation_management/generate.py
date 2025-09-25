@@ -90,6 +90,12 @@ def generate(
             query_filter = query_filter.where(Instruction.extension.contains('zbs') == False)
         if not ('zicond' in isa_string):
             query_filter = query_filter.where(Instruction.extension.contains('zicond') == False)
+        if not ('zihintntl' in isa_string):
+            query_filter = query_filter.where(Instruction.extension.contains('zihintntl') == False)
+        if not ('zchintntl' in isa_string):
+            query_filter = query_filter.where(Instruction.extension.contains('zchintntl') == False)
+        if not ('zicbop' in isa_string):
+            query_filter = query_filter.where(Instruction.extension.contains('zicbop') == False)
 
     # If query is an existing Expression or dict, add it to the query_filter
     if query:

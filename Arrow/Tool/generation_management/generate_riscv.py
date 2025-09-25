@@ -85,12 +85,22 @@ def generate_riscv(
     for operand in operands:
         if src_location == op_location:
             if isinstance(src, Memory):
-                eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg)
+                size_args = (operand.size.lower().split('_'))
+                if size_args[2] == 'shift':
+                    offset_shift = int(size_args[3])
+                    eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg, offset_shift=offset_shift)
+                else:
+                    eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg)
             else:
                 eval_operand = src
         elif dest_location == op_location:
             if isinstance(dest, Memory):
-                eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg)
+                size_args = (operand.size.lower().split('_'))
+                if size_args[2] == 'shift':
+                    offset_shift = int(size_args[3])
+                    eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg, offset_shift=offset_shift)
+                else:
+                    eval_operand = memory_operand.format_reg_as_label(dynamic_init_memory_address_reg)
             else:
                 eval_operand = dest
         elif operand.type == "implicit_operand":
@@ -106,7 +116,7 @@ def generate_riscv(
                 eval_operand = selected_reg
             else:
                 raise RuntimeError(f"Register manager ran out of free registers")
-        elif operand.type in ["imm", "nzimm"]:
+        elif operand.type in ["imm", "nzimm"]:        
             random_imm = generate_random_imm_with_size(operand.size, nzimm=(operand.type == "nzimm"))
             eval_operand = random_imm
             if selected_instruction.mnemonic in ['auipc', 'lui']:
