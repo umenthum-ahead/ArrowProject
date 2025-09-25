@@ -3903,7 +3903,7 @@
         {
             "mnemonic": "c.ntl.p1",
             "operands": [],
-            "type": "CI",
+            "type": "CR",
             "group": "hint",
             "description": "Compressed non-temporal locality hint, level 1 (strongest hint)",
             "syntax": "C.NTL.P1",
@@ -3913,7 +3913,7 @@
         {
             "mnemonic": "c.ntl.pall",
             "operands": [],
-            "type": "CI",
+            "type": "CR",
             "group": "hint",
             "description": "Compressed non-temporal locality hint for all levels",
             "syntax": "C.NTL.PALL",
@@ -3923,7 +3923,7 @@
         {
             "mnemonic": "c.ntl.s1",
             "operands": [],
-            "type": "CI",
+            "type": "CR",
             "group": "hint",
             "description": "Compressed non-temporal locality hint for stores, level 1",
             "syntax": "C.NTL.S1",
@@ -3933,7 +3933,7 @@
         {
             "mnemonic": "c.ntl.all",
             "operands": [],
-            "type": "CI",
+            "type": "CR",
             "group": "hint",
             "description": "Compressed non-temporal locality hint for all operations",
             "syntax": "C.NTL.ALL",
