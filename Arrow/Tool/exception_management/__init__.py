@@ -380,8 +380,6 @@ def populate_fiq_handler(page_table:PageTable):
     return fiq_handler_code, None
 
 
-from .exception_types import *
-
 __all__ = [
     'ExceptionType',
 ]
